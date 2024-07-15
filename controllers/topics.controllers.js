@@ -2,6 +2,7 @@ const {
   fetchApi,
   fetchTopics,
   fetchArticleById,
+  fetchArticles
 } = require("../models/topics.models");
 
 exports.getApi = (request, response, next) => {
@@ -26,3 +27,14 @@ exports.getArticleById = (request, response, next) => {
       next(error)
     });
 };
+
+exports.getArticles = (request, response, next) => {
+  fetchArticles()
+  .then((articlesWithStringCommentCount) => {
+    const articles = articlesWithStringCommentCount.map((article) => {
+      const commentCount = Number(article.comment_count)
+      return {...article, comment_count: commentCount }
+    }) 
+    response.status(200).send({articles})
+  })
+}

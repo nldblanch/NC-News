@@ -126,7 +126,7 @@ describe("/api/articles/:article_id", () => {
         .then(({ body: { article } }) => {
           expect(typeof article.author).toBe("string");
           expect(typeof article.title).toBe("string");
-          expect(typeof article.article_id).toBe("number");
+          expect(article.article_id).toBe(article_id);
           expect(typeof article.body).toBe("string");
           expect(typeof article.topic).toBe("string");
           expect(typeof article.created_at).toBe("string");
@@ -154,6 +154,43 @@ describe("/api/articles/:article_id", () => {
     });
   });
 });
+
+describe("/api/articles", () => {
+  describe("GET", () => {
+    it("responds with an array of article objects each with appropriate properties", () => {
+      return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({body: {articles}}) => {
+        expect(Array.isArray(articles)).toBe(true)
+        expect(articles.length).toBeGreaterThan(0)
+        articles.forEach((article) => {
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number")
+        })
+      })
+    })
+    it("sorts the articles in date, descending order (newest to oldest)", () => {
+      return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({body: {articles}}) => {
+        console.log(articles[0])
+        const articleTimestamps = articles.map((article) => {
+          return {created_at: Date.parse(article.created_at)}
+        })
+        expect(articleTimestamps).toBeSortedBy('created_at', {descending: !true})
+      })
+    })
+  })
+})
+
 
 describe("generic error handling", () => {
   it("responds with a 404 error when a non-existent endpoint is reached", () => {
