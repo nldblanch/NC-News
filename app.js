@@ -4,12 +4,12 @@ const { invalidEndpoint, internalServerError } = require("./error-handling");
 
 const app = express();
 
-app.get("/api", getApi)
+app.get("/api", getApi);
 
-app.get('/api/topics', getTopics)
+app.get("/api/topics", getTopics);
 
-app.all('*' , invalidEndpoint)
+app.all("*", invalidEndpoint);
 
-app.use(internalServerError)
+app.use(internalServerError);
 
 module.exports = app;
