@@ -116,6 +116,45 @@ describe("/api/topics", () => {
   });
 });
 
+describe("/api/articles/:article_id", () => {
+  describe("GET", () => {
+    it("responds with an article when given an id", () => {
+      const article_id = 1;
+      return request(app)
+        .get(`/api/articles/${article_id}`)
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.body).toBe("string");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+        });
+    });
+    it("responds with a bad request when given inappropriate data type", () => {
+      const article_id = "wrong id type";
+      return request(app)
+        .get(`/api/articles/${article_id}`)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+    it("responds with 404 when article of id doesn't exist", () => {
+      const article_id = 9000;
+      return request(app)
+        .get(`/api/articles/${article_id}`)
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - Not Found");
+        });
+    });
+  });
+});
+
 describe("generic error handling", () => {
   it("responds with a 404 error when a non-existent endpoint is reached", () => {
     return request(app)
