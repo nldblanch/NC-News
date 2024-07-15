@@ -3,6 +3,6 @@ exports.invalidEndpoint = (request, response) => {
 }
 
 
-exports.lastErrorHandler = (error, request, response, next) => {
+exports.internalServerError = (error, request, response, next) => {
   response.status(500).send({status: 500, message: "500 - Internal Server Error"})
 }
