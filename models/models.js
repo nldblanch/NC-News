@@ -2,7 +2,6 @@ const db = require("../db/connection");
 const endpoints = require("../endpoints.json");
 const format = require("pg-format");
 const { checkExists } = require("../utils/check-exists");
-const { getArticleById } = require("../controllers/controllers");
 exports.fetchApi = () => {
   return Promise.resolve(endpoints);
 };
@@ -65,56 +64,59 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
   if (typeof body !== "string") {
     return Promise.reject({ status: 400, message: "400 - Bad Request" });
   }
-  return this.fetchArticleById(article_id)
-  .then(() => {
-      const stringQuery = `
+  return this.fetchArticleById(article_id).then(() => {
+    const stringQuery = `
         INSERT INTO comments
         (body, article_id, author)
         VALUES %L
         RETURNING *
       `;
-      const data = [[body, article_id, author]];
-      const formattedStringQuery = format(stringQuery, data);
-      return db.query(formattedStringQuery).then(({ rows }) => {
-        return rows[0];
-      });
-    }
-  );
+    const data = [[body, article_id, author]];
+    const formattedStringQuery = format(stringQuery, data);
+    return db.query(formattedStringQuery).then(({ rows }) => {
+      return rows[0];
+    });
+  });
 };
 
 exports.updateArticle = (article_id, value) => {
-  return this.fetchArticleById(article_id)
-  .then(() => {
-      const queryString = format(
-        `
+  return this.fetchArticleById(article_id).then(() => {
+    const queryString = format(
+      `
       UPDATE articles
       SET votes = votes + $1 
       WHERE article_id = $2
       RETURNING *
       ;`
-      );
-      const data = [value, article_id]
-      return db.query(queryString, data)
-    .then(({rows}) => {
-      return rows[0]
-    })
+    );
+    const data = [value, article_id];
+    return db.query(queryString, data).then(({ rows }) => {
+      return rows[0];
+    });
+  });
+};
+
+exports.deleteComment = (comment_id) => {
+  return checkExists("comments", "comment_id", comment_id).then(
+    ({ exists }) => {
+      if (!exists) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+
+      const stringQuery = `
+    DELETE FROM comments
+    WHERE comment_id = $1
+    `;
+      return db.query(stringQuery, [comment_id]);
     }
   );
 };
 
-exports.deleteComment = (comment_id) => {
-  
-  
-  return checkExists('comments', 'comment_id', comment_id)
-  .then(({exists}) => {
-    if (!exists) {
-      return Promise.reject({status: 404, message: "404 - Not Found"})
-    }
-    
-    const stringQuery = `
-    DELETE FROM comments
-    WHERE comment_id = $1
-    `
-    return db.query(stringQuery, [comment_id])
+exports.fetchUsers = () => {
+  const stringQuery = `
+  SELECT * FROM USERS`
+  return db.query(stringQuery)
+  .then(({rows}) => {
+    return rows
   })
 }
