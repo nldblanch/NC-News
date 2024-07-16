@@ -146,7 +146,7 @@ describe("/api/articles/:article_id", () => {
     });
   });
   describe("PATCH", () => {
-    it("200: increments the votes property on an article by 1", () => {
+    it("200: increments the votes property on an article", () => {
       const input_article_id = 1;
       const newVote = 1;
       const patchInfo = { inc_votes: newVote };
@@ -168,7 +168,7 @@ describe("/api/articles/:article_id", () => {
           expect(article).toMatchObject(expectedReturnArticle);
         });
     });
-    it("200: decerements the votes property on an article by 100", () => {
+    it("200: decerements the votes property", () => {
       const input_article_id = 1;
       const newVote = -100;
       const patchInfo = { inc_votes: newVote };
@@ -240,6 +240,18 @@ describe("/api/articles/:article_id", () => {
       const input_article_id = 1;
       const newVote = "hello";
       const patchInfo = { inc_votes: newVote };
+      return request(app)
+        .patch(`/api/articles/${input_article_id}`)
+        .send(patchInfo)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+    it("400: returns bad request when not given correct data key", () => {
+      const input_article_id = 1;
+      const newVote = "hello";
+      const patchInfo = { different_key: newVote };
       return request(app)
         .patch(`/api/articles/${input_article_id}`)
         .send(patchInfo)

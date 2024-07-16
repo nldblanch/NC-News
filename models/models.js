@@ -82,17 +82,16 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
   );
 };
 
-exports.updateArticle = (article_id, column, value) => {
+exports.updateArticle = (article_id, value) => {
   return this.fetchArticleById(article_id)
   .then(() => {
       const queryString = format(
         `
       UPDATE articles
-      SET %I = %I + $1 
+      SET votes = votes + $1 
       WHERE article_id = $2
       RETURNING *
-      ;`,
-        column, column
+      ;`
       );
       const data = [value, article_id]
       return db.query(queryString, data)

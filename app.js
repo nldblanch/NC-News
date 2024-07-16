@@ -36,6 +36,8 @@ app.use(errorFunctions.customErrorHandler);
 
 app.use(errorFunctions.userDoesNotExist)
 
+app.use(errorFunctions.nullEnteredIntoColumn)
+
 app.use(errorFunctions.queryInvalidDataType);
 
 app.use(errorFunctions.internalServerError);

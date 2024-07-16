@@ -27,9 +27,7 @@ exports.getArticleById = (request, response, next) => {
     .then((article) => {
       response.status(200).send({ article });
     })
-    .catch((error) => {
-      next(error);
-    });
+    .catch(next);
 };
 
 exports.getArticles = (request, response, next) => {
@@ -64,7 +62,7 @@ exports.postCommentToArticle = (request, response, next) => {
 exports.patchArticle = (request, response, next) => {
   const { article_id } = request.params;
   const { inc_votes } = request.body;
-  updateArticle(article_id, "votes", inc_votes)
+  updateArticle(article_id, inc_votes)
   .then((article) => {
     response.status(200).send({article})
   })
