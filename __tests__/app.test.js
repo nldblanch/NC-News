@@ -181,10 +181,7 @@ describe("/api/articles", () => {
         .get("/api/articles")
         .expect(200)
         .then(({ body: { articles } }) => {
-          const articleTimestamps = articles.map((article) => {
-            return { created_at: Date.parse(article.created_at) };
-          });
-          expect(articleTimestamps).toBeSortedBy("created_at", {
+          expect(articles).toBeSortedBy("created_at", {
             descending: true,
           });
         });

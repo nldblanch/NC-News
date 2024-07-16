@@ -1,6 +1,6 @@
 const db = require("../db/connection");
-const { checkExists } = require("../db/seeds/utils");
 const endpoints = require("../endpoints.json");
+const { checkExists } = require("../utils/check-exists");
 exports.fetchApi = () => {
   return Promise.resolve(endpoints);
 };
