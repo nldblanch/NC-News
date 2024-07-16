@@ -52,8 +52,7 @@ exports.fetchCommentsByArticleId = (article_id) => {
   const promiseArray = [];
   promiseArray.push(db.query(stringQuery, [article_id]));
   promiseArray.push(checkExists("articles", "article_id", article_id));
-  return Promise.all(promiseArray)
-  .then(([{ rows }, { exists }]) => {
+  return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
     if (rows.length === 0 && !exists) {
       return Promise.reject({ status: 404, message: "404 - Not Found" });
     }
@@ -65,8 +64,8 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
   if (typeof body !== "string") {
     return Promise.reject({ status: 400, message: "400 - Bad Request" });
   }
-  return checkExists("articles", "article_id", article_id)
-  .then(({ exists }) => {
+  return checkExists("articles", "article_id", article_id).then(
+    ({ exists }) => {
       if (!exists) {
         return Promise.reject({ status: 404, message: "404 - Not Found" });
       }
@@ -81,6 +80,31 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
       return db.query(formattedStringQuery).then(({ rows }) => {
         return rows[0];
       });
+    }
+  );
+};
+
+exports.updateArticle = (article_id, column, value) => {
+  return checkExists("articles", "article_id", article_id)
+  .then(
+    ({ exists }) => {
+      if (!exists) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+      const queryString = format(
+        `
+      UPDATE articles
+      SET %I = %I + $1 
+      WHERE article_id = $2
+      RETURNING *
+      ;`,
+        column, column
+      );
+      const data = [value, article_id]
+      return db.query(queryString, data)
+    .then(({rows}) => {
+      return rows[0]
+    })
     }
   );
 };

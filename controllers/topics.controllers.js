@@ -5,6 +5,7 @@ const {
   fetchArticles,
   fetchCommentsByArticleId,
   insertCommentOntoArticle,
+  updateArticle,
 } = require("../models/topics.models");
 
 exports.getApi = (request, response, next) => {
@@ -58,3 +59,13 @@ exports.postCommentToArticle = (request, response, next) => {
     })
     .catch(next);
 };
+
+exports.patchArticle = (request, response, next) => {
+  const { article_id } = request.params;
+  const { inc_votes } = request.body;
+  updateArticle(article_id, "votes", inc_votes)
+  .then((article) => {
+    response.status(200).send({article})
+  })
+  .catch(next)
+}
