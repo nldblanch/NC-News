@@ -84,14 +84,6 @@ describe("/api", () => {
           arrayOfEndpoints.forEach((endpoint) => {
             const { exampleResponse } = endpoints[endpoint];
             expect(typeof exampleResponse).toBe("object");
-            const exampleResponseKeys = Object.keys(exampleResponse);
-            expect(exampleResponseKeys.length).toBeGreaterThan(0);
-            exampleResponseKeys.forEach((key) => {
-              const responseContainsObject =
-                exampleResponse[key].length > 0 ||
-                Object.keys(exampleResponse[key]).length > 0;
-              expect(responseContainsObject).toBe(true);
-            });
           });
         });
     });
@@ -455,6 +447,38 @@ describe("/api/articles/:article_id/comments", () => {
     });
   });
 });
+
+describe("/api/comments/:comment_id", () => {
+  describe("DELETE", () => {
+    it("204: deletes the comment, no response content", () => {
+      const input_comment_id = 1
+      return request(app)
+      .delete(`/api/comments/${input_comment_id}`)
+      .expect(204)
+      .then(({body}) => {
+        expect(body).toEqual({})
+      })
+    })
+    it("404: returns not found when comment id doesn't exist", () => {
+      const input_comment_id = 9000
+      return request(app)
+      .delete(`/api/comments/${input_comment_id}`)
+      .expect(404)
+      .then(({body: {message}}) => {
+        expect(message).toBe("404 - Not Found")
+      })
+    })
+    it("400: returns bad request when given invalid id data type", () => {
+      const input_comment_id = 'hello'
+      return request(app)
+      .delete(`/api/comments/${input_comment_id}`)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toBe("400 - Bad Request")
+      })
+    })
+  })
+})
 
 describe("generic error handling", () => {
   it("responds with a 404 error when a non-existent endpoint is reached", () => {

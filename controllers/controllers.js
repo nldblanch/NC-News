@@ -6,7 +6,8 @@ const {
   fetchCommentsByArticleId,
   insertCommentOntoArticle,
   updateArticle,
-} = require("../models/topics.models");
+  deleteComment,
+} = require("../models/models");
 
 exports.getApi = (request, response, next) => {
   fetchApi().then((endpoints) => {
@@ -66,6 +67,15 @@ exports.patchArticle = (request, response, next) => {
   updateArticle(article_id, "votes", inc_votes)
   .then((article) => {
     response.status(200).send({article})
+  })
+  .catch(next)
+}
+
+exports.deleteCommentController = (request, response, next) => {
+  const {comment_id} = request.params
+  deleteComment(comment_id)
+  .then((result) => {
+    response.status(204).send()
   })
   .catch(next)
 }
