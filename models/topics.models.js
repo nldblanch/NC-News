@@ -2,6 +2,7 @@ const db = require("../db/connection");
 const endpoints = require("../endpoints.json");
 const format = require("pg-format");
 const { checkExists } = require("../utils/check-exists");
+const { getArticleById } = require("../controllers/topics.controllers");
 exports.fetchApi = () => {
   return Promise.resolve(endpoints);
 };
@@ -64,11 +65,8 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
   if (typeof body !== "string") {
     return Promise.reject({ status: 400, message: "400 - Bad Request" });
   }
-  return checkExists("articles", "article_id", article_id).then(
-    ({ exists }) => {
-      if (!exists) {
-        return Promise.reject({ status: 404, message: "404 - Not Found" });
-      }
+  return this.fetchArticleById(article_id)
+  .then(() => {
       const stringQuery = `
         INSERT INTO comments
         (body, article_id, author)
@@ -85,12 +83,8 @@ exports.insertCommentOntoArticle = (article_id, author, body) => {
 };
 
 exports.updateArticle = (article_id, column, value) => {
-  return checkExists("articles", "article_id", article_id)
-  .then(
-    ({ exists }) => {
-      if (!exists) {
-        return Promise.reject({ status: 404, message: "404 - Not Found" });
-      }
+  return this.fetchArticleById(article_id)
+  .then(() => {
       const queryString = format(
         `
       UPDATE articles
