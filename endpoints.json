@@ -82,5 +82,23 @@
         "created_at": "22024-07-16T13:03:23.062Z"
       }
     }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "allows client to patch article information",
+    "queries": [],
+    "format": {
+      "inc_votes": 1
+    },
+    "exampleResponse": {
+      "article": {
+        "title": "Living in the shadow of a great man",
+        "topic": "mitch",
+        "author": "butter_bridge",
+        "body": "I find this existence challenging",
+        "created_at": "22024-07-16T13:03:23.062Z",
+        "votes": 101,
+        "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+      }
+    }
   }
 }
