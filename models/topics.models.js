@@ -44,17 +44,13 @@ exports.fetchArticles = () => {
 
 exports.fetchCommentsByArticleId = (article_id) => {
   const stringQuery = `
-  SELECT comment_id, comments.votes, comments.created_at, comments.author, comments.body, comments.article_id
-  FROM articles
-  LEFT JOIN comments
-    ON articles.article_id = comments.article_id
-  WHERE comments.article_id = $1
+  SELECT comment_id, votes, created_at, author, body, article_id
+  FROM comments
+  WHERE article_id = $1
   `;
   const promiseArray = [];
   promiseArray.push(db.query(stringQuery, [article_id]));
-  if (article_id !== undefined) {
-    promiseArray.push(checkExists("articles", "article_id", article_id));
-  }
+  promiseArray.push(checkExists("articles", "article_id", article_id));
   return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
     if (rows.length === 0 && !exists) {
       return Promise.reject({ status: 404, message: "404 - Not Found" });
