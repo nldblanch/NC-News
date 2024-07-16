@@ -64,5 +64,23 @@
         }
       ]
     }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "allows client to post comment to an article and returns posted comment",
+    "queries": [],
+    "format": {
+      "username": "butter_bridge",
+      "body": "my first ever comment"
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 19,
+        "body": "my first ever comment",
+        "article_id": 1,
+        "author": "butter_bridge",
+        "votes": 0,
+        "created_at": "22024-07-16T13:03:23.062Z"
+      }
+    }
   }
 }

@@ -1,5 +1,6 @@
 const db = require("../db/connection");
 const endpoints = require("../endpoints.json");
+const format = require("pg-format");
 const { checkExists } = require("../utils/check-exists");
 exports.fetchApi = () => {
   return Promise.resolve(endpoints);
@@ -51,10 +52,35 @@ exports.fetchCommentsByArticleId = (article_id) => {
   const promiseArray = [];
   promiseArray.push(db.query(stringQuery, [article_id]));
   promiseArray.push(checkExists("articles", "article_id", article_id));
-  return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
+  return Promise.all(promiseArray)
+  .then(([{ rows }, { exists }]) => {
     if (rows.length === 0 && !exists) {
       return Promise.reject({ status: 404, message: "404 - Not Found" });
     }
     return rows;
   });
+};
+
+exports.insertCommentOntoArticle = (article_id, author, body) => {
+  if (typeof body !== "string") {
+    return Promise.reject({ status: 400, message: "400 - Bad Request" });
+  }
+  return checkExists("articles", "article_id", article_id)
+  .then(({ exists }) => {
+      if (!exists) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+      const stringQuery = `
+        INSERT INTO comments
+        (body, article_id, author)
+        VALUES %L
+        RETURNING *
+      `;
+      const data = [[body, article_id, author]];
+      const formattedStringQuery = format(stringQuery, data);
+      return db.query(formattedStringQuery).then(({ rows }) => {
+        return rows[0];
+      });
+    }
+  );
 };
