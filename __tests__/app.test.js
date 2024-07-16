@@ -63,7 +63,7 @@ describe("/api", () => {
           });
         });
     });
-    it("expects every endpoint to have a string format if given one", () => {
+    it("expects every endpoint to have a format object if given one", () => {
       return request(app)
         .get("/api")
         .expect(200)
@@ -71,7 +71,7 @@ describe("/api", () => {
           const arrayOfEndpoints = Object.keys(endpoints);
           arrayOfEndpoints.forEach((endpoint) => {
             const { format } = endpoints[endpoint];
-            if (format) expect(typeof format).toBe("string");
+            if (format) expect(typeof format).toBe("object");
           });
         });
     });
@@ -240,6 +240,98 @@ describe("/api/articles/:article_id/comments", () => {
         });
     });
   });
+  describe("POST", () => {
+    it("201: responds with the posted comment on the article", () => {
+      const input_article_id = 1;
+      const sentComment = {username: 'butter_bridge', body: 'my first ever commment'}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(201)
+        .then(({body: {comment}}) => {
+          const {comment_id, votes, created_at, author, body, article_id} = comment
+          expect(typeof comment_id).toBe("number");
+          expect(votes).toBe(0);
+          expect(typeof created_at).toBe("string");
+          expect(author).toBe(sentComment.username);
+          expect(body).toBe(sentComment.body);
+          expect(article_id).toBe(input_article_id);
+        })
+    })
+    it("201: ignores additional keys on body", () => {
+      const input_article_id = 1;
+      const sentComment = {username: 'butter_bridge', body: "my not so first comment", extraKey: 0}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(201)
+        .then(({body: {comment}}) => {
+          const {comment_id, votes, created_at, author, body, article_id} = comment
+          expect(Object.keys(comment).length).toBe(6)
+          expect(typeof comment_id).toBe("number");
+          expect(votes).toBe(0);
+          expect(typeof created_at).toBe("string");
+          expect(author).toBe(sentComment.username);
+          expect(body).toBe(sentComment.body);
+          expect(article_id).toBe(input_article_id);
+        })
+    })
+    it("400: responds with bad request when user doesn't yet exist in database", () => {
+      const input_article_id = 1;
+      const sentComment = {username: 'nldblanch', body: 'my first ever commment'}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(400)
+        .then(({body: {message}}) => {
+         expect(message).toBe("400 - User does not exist")
+        })
+    })
+    it("400: responds with bad request when invalid data type for id", () => {
+      const input_article_id = "invalid data type";
+      const sentComment = {username: 'butter_bridge', body: 'my first ever commment'}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(400)
+        .then(({body: {message}}) => {
+          expect(message).toBe("400 - Bad Request")
+        })
+    })
+    it("400: responds with bad request when invalid data types given to object", () => {
+      const input_article_id = 1;
+      const sentComment = {username: 'butter_bridge', body: 200}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(400)
+        .then(({body: {message}}) => {
+          expect(message).toBe("400 - Bad Request")
+        })
+    })
+    it("400: responds with bad request when object body is missing entries", () => {
+      const input_article_id = "invalid data type";
+      const sentComment = {username: 'butter_bridge'}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(400)
+        .then(({body: {message}}) => {
+          expect(message).toBe("400 - Bad Request")
+        })
+    })
+    it("404: responds with not found when article corresponding to id does not exist", () => {
+      const input_article_id = 9000;
+      const sentComment = {username: 'butter_bridge', body: 'my first ever commment'}
+      return request(app)
+        .post(`/api/articles/${input_article_id}/comments`)
+        .send(sentComment)
+        .expect(404)
+        .then(({body: {message}}) => {
+         expect(message).toBe("404 - Not Found")
+        })
+    })
+  })
 });
 
 describe("generic error handling", () => {
