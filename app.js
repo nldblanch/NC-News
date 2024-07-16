@@ -6,6 +6,7 @@ const {
   getArticles,
   getCommentsByArticleId,
   postCommentToArticle,
+  patchArticle,
 } = require("./controllers/topics.controllers");
 const errorFunctions = require("./error-handling");
 
@@ -23,6 +24,8 @@ app.get("/api/articles", getArticles);
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 
 app.post("/api/articles/:article_id/comments", postCommentToArticle);
+
+app.patch("/api/articles/:article_id", patchArticle)
 
 app.all("*", errorFunctions.invalidEndpoint);
 
