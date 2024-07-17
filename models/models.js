@@ -29,16 +29,28 @@ exports.fetchArticleById = (id) => {
   });
 };
 
-exports.fetchArticles = () => {
-  const stringQuery = `
-  SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id) AS comment_count
+exports.fetchArticles = (sort_by = "created_at", order = 'desc') => {
+  const allowedQueries = ["created_at", "title", "author", "votes", "topic"]
+  if (!allowedQueries.includes(sort_by)) {
+    return Promise.reject({status: 405, message: "405 - Method Not Allowed"})
+  }
+
+  let stringQuery = `
+  SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count
   FROM articles
   LEFT JOIN comments
     ON articles.article_id = comments.article_id
   GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
-  ORDER BY articles.created_at DESC
+  ORDER BY articles.%I
   `;
-  return db.query(stringQuery).then(({ rows }) => {
+  //descending alphabetical order is ascending numerical order
+  if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
+    order = 'asc';
+  }
+  stringQuery += order === 'asc' ? "ASC" : 'DESC';
+
+  const formattedStringQuery = format(stringQuery, sort_by);
+  return db.query(formattedStringQuery).then(({ rows }) => {
     return rows;
   });
 };

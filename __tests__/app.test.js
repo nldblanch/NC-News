@@ -265,7 +265,7 @@ describe("/api/articles/:article_id", () => {
 
 describe("/api/articles", () => {
   describe("GET", () => {
-    it("responds with an array of article objects each with appropriate properties", () => {
+    it("200: responds with an array of article objects each with appropriate properties", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
@@ -284,7 +284,7 @@ describe("/api/articles", () => {
           });
         });
     });
-    it("sorts the articles in date, descending order (newest to oldest)", () => {
+    it("200: sorts the articles in date, descending order (newest to oldest)", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
@@ -294,6 +294,86 @@ describe("/api/articles", () => {
           });
         });
     });
+  });
+  describe("?sort_by=", () => {
+    it("200: allows the user to sort articles by title, default alphabetical order", () => {
+      return request(app)
+        .get("/api/articles?sort_by=title")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("title", {
+            descending: false,
+          });
+        });
+    });
+    it("200: allows the user to sort articles by any valid column (topic, default alphabetical)", () => {
+      return request(app)
+        .get("/api/articles?sort_by=topic")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("topic", {
+            descending: false,
+          });
+        });
+    });
+    it("200: allows the user to sort articles by any valid column (author, default alphabetical)", () => {
+      return request(app)
+        .get("/api/articles?sort_by=author")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("author", {
+            descending: false,
+          });
+        });
+    });
+    it("200: allows the user to sort articles by any valid column (votes, default descending)", () => {
+      return request(app)
+        .get("/api/articles?sort_by=votes")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("votes", {
+            descending: true,
+          });
+        });
+    });
+    it("200: allows the user to sort articles by any valid column (created_at, default descending)", () => {
+      return request(app)
+        .get("/api/articles?sort_by=created_at")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("created_at", {
+            descending: true,
+          });
+        });
+    });
+    it("200: allows user to choose whether the order is ascending or descending", () => {
+      return request(app)
+        .get("/api/articles?sort_by=votes&&order=asc")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("votes", {
+            descending: false,
+          });
+        });
+    });
+    it("405: only allows greenlisted sortby and order queries", () => {
+      return request(app)
+        .get("/api/articles?sort_by=bananas")
+        .expect(405)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("405 - Method Not Allowed");
+        });
+    });
+    it("200: defaults to descending (alphabetical ascending) when invalid order given", () => {
+      return request(app)
+      .get("/api/articles?sort_by=author&&order=anything_I_want")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", {
+          descending: false
+        });
+      });
+    })
   });
 });
 
@@ -463,34 +543,34 @@ describe("/api/articles/:article_id/comments", () => {
 describe("/api/comments/:comment_id", () => {
   describe("DELETE", () => {
     it("204: deletes the comment, no response content", () => {
-      const input_comment_id = 1
+      const input_comment_id = 1;
       return request(app)
-      .delete(`/api/comments/${input_comment_id}`)
-      .expect(204)
-      .then(({body}) => {
-        expect(body).toEqual({})
-      })
-    })
+        .delete(`/api/comments/${input_comment_id}`)
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).toEqual({});
+        });
+    });
     it("404: returns not found when comment id doesn't exist", () => {
-      const input_comment_id = 9000
+      const input_comment_id = 9000;
       return request(app)
-      .delete(`/api/comments/${input_comment_id}`)
-      .expect(404)
-      .then(({body: {message}}) => {
-        expect(message).toBe("404 - Not Found")
-      })
-    })
+        .delete(`/api/comments/${input_comment_id}`)
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - Not Found");
+        });
+    });
     it("400: returns bad request when given invalid id data type", () => {
-      const input_comment_id = 'hello'
+      const input_comment_id = "hello";
       return request(app)
-      .delete(`/api/comments/${input_comment_id}`)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toBe("400 - Bad Request")
-      })
-    })
-  })
-})
+        .delete(`/api/comments/${input_comment_id}`)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+  });
+});
 
 describe("/api/users", () => {
   describe("GET", () => {
