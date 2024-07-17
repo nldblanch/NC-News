@@ -31,13 +31,13 @@ exports.getArticleById = (request, response, next) => {
 };
 
 exports.getArticles = (request, response, next) => {
-  fetchArticles().then((articlesWithStringCommentCount) => {
-    const articles = articlesWithStringCommentCount.map((article) => {
-      const commentCount = Number(article.comment_count);
-      return { ...article, comment_count: commentCount };
-    });
+  const {sort_by, order} = request.query
+  fetchArticles(sort_by, order)
+  .then((articles) => {
     response.status(200).send({ articles });
-  });
+  })
+  .catch(next)
+  ;
 };
 
 exports.getCommentsByArticleId = (request, response, next) => {

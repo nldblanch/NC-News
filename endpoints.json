@@ -18,8 +18,8 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all articles, ordered by date by default",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "description": "serves an array of all articles, ordered by creation date by default. The user can choose the sorting method and order. The order is descending, alphabetical A-Z, newest-oldest by default",
+    "queries": ["created_at", "title", "votes", "author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
         {
