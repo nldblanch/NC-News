@@ -536,6 +536,85 @@ describe("/api/articles/:article_id/comments", () => {
 });
 
 describe("/api/comments/:comment_id", () => {
+  describe("PATCH", () => {
+    it("200: increments a given comment", () => {
+      const input_comment_id = 1
+      const patchInfo = { inc_votes: 1 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(200)
+      .then(({body: {comment}}) => {
+        expect(comment.votes).toBe(17)
+      })
+    })
+    it("200: decrements a given comment", () => {
+      const input_comment_id = 1
+      const patchInfo = { inc_votes: -1 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(200)
+      .then(({body: {comment}}) => {
+        expect(comment.votes).toBe(15)
+      })
+    })
+    it("200: ignores additional keys on patch info", () => {
+      const input_comment_id = 1
+      const patchInfo = { inc_votes: 10, extraKey: 0 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(200)
+      .then(({body: {comment}}) => {
+        expect(comment.votes).toBe(26)
+      })
+    })
+    it("404: returns not found when comment doesn't exist", () => {
+      const input_comment_id = 90009
+      const patchInfo = { inc_votes: 1 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(404)
+      .then(({body: {message}}) => {
+        expect(message).toBe("404 - Not Found")
+      })
+    })
+    it("400: returns bad request when given invalid id", () => {
+      const input_comment_id = "hello bananas"
+      const patchInfo = { inc_votes: -1 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toBe("400 - Bad Request")
+      })
+    })
+    it("400: returns bad request when given incorrect data types", () => {
+      const input_comment_id = 1
+      const patchInfo = { inc_votes: '; drop table if exists finances;' }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toBe("400 - Bad Request")
+      })
+    })
+    it("400: returns bad request when not given correct patch key", () => {
+      const input_comment_id = 1
+      const patchInfo = { dropTable: 1 }
+      return request(app)
+      .patch(`/api/comments/${input_comment_id}`)
+      .send(patchInfo)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toBe("400 - Bad Request")
+      })
+    })
+  })
   describe("DELETE", () => {
     it("204: deletes the comment, no response content", () => {
       const input_comment_id = 1;
