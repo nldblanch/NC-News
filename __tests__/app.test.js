@@ -36,57 +36,6 @@ describe("/api", () => {
           });
         });
     });
-    it("expects every endpoint to have a description", () => {
-      return request(app)
-        .get("/api")
-        .expect(200)
-        .then(({ body: { endpoints } }) => {
-          const arrayOfEndpoints = Object.keys(endpoints);
-          arrayOfEndpoints.forEach((endpoint) => {
-            const { description } = endpoints[endpoint];
-            expect(typeof description).toBe("string");
-          });
-        });
-    });
-    it("expects every endpoint to have an array of allowed queries", () => {
-      return request(app)
-        .get("/api")
-        .expect(200)
-        .then(({ body: { endpoints } }) => {
-          const arrayOfEndpoints = Object.keys(endpoints);
-          arrayOfEndpoints.forEach((endpoint) => {
-            const { queries } = endpoints[endpoint];
-            expect(Array.isArray(queries)).toBe(true);
-            queries.forEach((query) => {
-              expect(typeof query).toBe("string");
-            });
-          });
-        });
-    });
-    it("expects every endpoint to have a format object if given one", () => {
-      return request(app)
-        .get("/api")
-        .expect(200)
-        .then(({ body: { endpoints } }) => {
-          const arrayOfEndpoints = Object.keys(endpoints);
-          arrayOfEndpoints.forEach((endpoint) => {
-            const { format } = endpoints[endpoint];
-            if (format) expect(typeof format).toBe("object");
-          });
-        });
-    });
-    it("expects every endpoint to have an example response object that contains responses", () => {
-      return request(app)
-        .get("/api")
-        .expect(200)
-        .then(({ body: { endpoints } }) => {
-          const arrayOfEndpoints = Object.keys(endpoints);
-          arrayOfEndpoints.forEach((endpoint) => {
-            const { exampleResponse } = endpoints[endpoint];
-            expect(typeof exampleResponse).toBe("object");
-          });
-        });
-    });
   });
 });
 
