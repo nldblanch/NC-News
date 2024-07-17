@@ -2,7 +2,6 @@ const db = require("../db/connection");
 const endpoints = require("../endpoints.json");
 const format = require("pg-format");
 const { checkExists } = require("../utils/check-exists");
-const { getArticleById } = require("../controllers/controllers");
 exports.fetchApi = () => {
   return Promise.resolve(endpoints);
 };
@@ -124,3 +123,12 @@ exports.deleteComment = (comment_id) => {
     }
   );
 };
+
+exports.fetchUsers = () => {
+  const stringQuery = `
+  SELECT * FROM USERS`
+  return db.query(stringQuery)
+  .then(({rows}) => {
+    return rows
+  })
+}
