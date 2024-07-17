@@ -7,7 +7,6 @@ const {
   insertCommentOntoArticle,
   updateArticle,
   deleteComment,
-  fetchUsers
 } = require("../models/models");
 
 exports.getApi = (request, response, next) => {
@@ -79,9 +78,4 @@ exports.deleteCommentController = (request, response, next) => {
   .catch(next)
 }
 
-exports.getUsers = (request, response, next) => {
-  fetchUsers()
-  .then((users) => {
-    response.status(200).send({users})
-  })
-}
+
