@@ -243,87 +243,90 @@ describe("/api/articles", () => {
           });
         });
     });
+    describe("?sort_by=", () => {
+      it("200: allows the user to sort articles by title, default alphabetical order", () => {
+        return request(app)
+          .get("/api/articles?sort_by=title")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("title", {
+              descending: false,
+            });
+          });
+      });
+      it("200: allows the user to sort articles by any valid column (topic, default alphabetical)", () => {
+        return request(app)
+          .get("/api/articles?sort_by=topic")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("topic", {
+              descending: false,
+            });
+          });
+      });
+      it("200: allows the user to sort articles by any valid column (author, default alphabetical)", () => {
+        return request(app)
+          .get("/api/articles?sort_by=author")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("author", {
+              descending: false,
+            });
+          });
+      });
+      it("200: allows the user to sort articles by any valid column (votes, default descending)", () => {
+        return request(app)
+          .get("/api/articles?sort_by=votes")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("votes", {
+              descending: true,
+            });
+          });
+      });
+      it("200: allows the user to sort articles by any valid column (created_at, default descending)", () => {
+        return request(app)
+          .get("/api/articles?sort_by=created_at")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("created_at", {
+              descending: true,
+            });
+          });
+      });
+      it("405: only allows greenlisted sortby queries", () => {
+        return request(app)
+          .get("/api/articles?sort_by=bananas")
+          .expect(405)
+          .then(({ body: { message } }) => {
+            expect(message).toBe("405 - Method Not Allowed");
+          });
+      });
+    });
+    describe("?order=", () => {
+      it("200: allows user to choose whether the order is ascending or descending", () => {
+        return request(app)
+          .get("/api/articles?sort_by=votes&&order=asc")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("votes", {
+              descending: false,
+            });
+          });
+      });
+      it("200: defaults to descending (alphabetical ascending) when invalid order given", () => {
+        return request(app)
+          .get("/api/articles?sort_by=author&&order=anything_I_want")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("author", {
+              descending: false,
+            });
+          });
+      });
+    })
   });
-  describe("?sort_by=", () => {
-    it("200: allows the user to sort articles by title, default alphabetical order", () => {
-      return request(app)
-        .get("/api/articles?sort_by=title")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("title", {
-            descending: false,
-          });
-        });
-    });
-    it("200: allows the user to sort articles by any valid column (topic, default alphabetical)", () => {
-      return request(app)
-        .get("/api/articles?sort_by=topic")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("topic", {
-            descending: false,
-          });
-        });
-    });
-    it("200: allows the user to sort articles by any valid column (author, default alphabetical)", () => {
-      return request(app)
-        .get("/api/articles?sort_by=author")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("author", {
-            descending: false,
-          });
-        });
-    });
-    it("200: allows the user to sort articles by any valid column (votes, default descending)", () => {
-      return request(app)
-        .get("/api/articles?sort_by=votes")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("votes", {
-            descending: true,
-          });
-        });
-    });
-    it("200: allows the user to sort articles by any valid column (created_at, default descending)", () => {
-      return request(app)
-        .get("/api/articles?sort_by=created_at")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("created_at", {
-            descending: true,
-          });
-        });
-    });
-    it("200: allows user to choose whether the order is ascending or descending", () => {
-      return request(app)
-        .get("/api/articles?sort_by=votes&&order=asc")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("votes", {
-            descending: false,
-          });
-        });
-    });
-    it("405: only allows greenlisted sortby and order queries", () => {
-      return request(app)
-        .get("/api/articles?sort_by=bananas")
-        .expect(405)
-        .then(({ body: { message } }) => {
-          expect(message).toBe("405 - Method Not Allowed");
-        });
-    });
-    it("200: defaults to descending (alphabetical ascending) when invalid order given", () => {
-      return request(app)
-        .get("/api/articles?sort_by=author&&order=anything_I_want")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("author", {
-            descending: false,
-          });
-        });
-    });
-  });
+  
 });
 
 describe("/api/articles/:article_id/comments", () => {
