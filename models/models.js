@@ -29,10 +29,10 @@ exports.fetchArticleById = (id) => {
   });
 };
 
-exports.fetchArticles = (sort_by = "created_at", order = 'desc') => {
-  const allowedQueries = ["created_at", "title", "author", "votes", "topic"]
+exports.fetchArticles = (sort_by = "created_at", order = "desc") => {
+  const allowedQueries = ["created_at", "title", "author", "votes", "topic"];
   if (!allowedQueries.includes(sort_by)) {
-    return Promise.reject({status: 405, message: "405 - Method Not Allowed"})
+    return Promise.reject({ status: 405, message: "405 - Method Not Allowed" });
   }
 
   let stringQuery = `
@@ -45,9 +45,9 @@ exports.fetchArticles = (sort_by = "created_at", order = 'desc') => {
   `;
   //descending alphabetical order is ascending numerical order
   if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
-    order = 'asc';
+    order = "asc";
   }
-  stringQuery += order === 'asc' ? "ASC" : 'DESC';
+  stringQuery += order === "asc" ? "ASC" : "DESC";
 
   const formattedStringQuery = format(stringQuery, sort_by);
   return db.query(formattedStringQuery).then(({ rows }) => {
@@ -126,9 +126,8 @@ exports.deleteComment = (comment_id) => {
 
 exports.fetchUsers = () => {
   const stringQuery = `
-  SELECT * FROM USERS`
-  return db.query(stringQuery)
-  .then(({rows}) => {
-    return rows
-  })
-}
+  SELECT * FROM USERS`;
+  return db.query(stringQuery).then(({ rows }) => {
+    return rows;
+  });
+};

@@ -366,14 +366,14 @@ describe("/api/articles", () => {
     });
     it("200: defaults to descending (alphabetical ascending) when invalid order given", () => {
       return request(app)
-      .get("/api/articles?sort_by=author&&order=anything_I_want")
-      .expect(200)
-      .then(({ body: { articles } }) => {
-        expect(articles).toBeSortedBy("author", {
-          descending: false
+        .get("/api/articles?sort_by=author&&order=anything_I_want")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("author", {
+            descending: false,
+          });
         });
-      });
-    })
+    });
   });
 });
 
@@ -576,21 +576,21 @@ describe("/api/users", () => {
   describe("GET", () => {
     it("responds with an array of user objects", () => {
       return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({body: {users}}) => {
-        expect(Array.isArray(users)).toBe(true)
-        expect(users.length).toBeGreaterThan(0)
-        users.forEach((user) => {
-          const {username, name, avatar_url} = user
-          expect(typeof username).toBe("string")
-          expect(typeof name).toBe("string")
-          expect(typeof avatar_url).toBe("string")
-        })
-      })
-    })
-  })
-})
+        .get("/api/users")
+        .expect(200)
+        .then(({ body: { users } }) => {
+          expect(Array.isArray(users)).toBe(true);
+          expect(users.length).toBeGreaterThan(0);
+          users.forEach((user) => {
+            const { username, name, avatar_url } = user;
+            expect(typeof username).toBe("string");
+            expect(typeof name).toBe("string");
+            expect(typeof avatar_url).toBe("string");
+          });
+        });
+    });
+  });
+});
 
 describe("generic error handling", () => {
   it("responds with a 404 error when a non-existent endpoint is reached", () => {
