@@ -31,6 +31,7 @@
   "GET /api/articles": {
     "description": "serves an array of all articles, ordered by creation date by default. The user can choose the sorting method and order. The order is descending, alphabetical A-Z, newest-oldest by default. The topic query filters articles by specified topic.",
     "queries": {
+      "topic": ["mitch", "any_topic_name"],
       "sort_by": ["created_at", "title", "votes", "author", "topic"], "order": ["ASC", "DESC"]
     },
    

@@ -29,29 +29,45 @@ exports.fetchArticleById = (id) => {
   });
 };
 
-exports.fetchArticles = (sort_by = "created_at", order = "desc") => {
+exports.fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
   const allowedQueries = ["created_at", "title", "author", "votes", "topic"];
   if (!allowedQueries.includes(sort_by)) {
     return Promise.reject({ status: 405, message: "405 - Method Not Allowed" });
   }
-
+  const promiseArray = []
   let stringQuery = `
   SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count
   FROM articles
   LEFT JOIN comments
-    ON articles.article_id = comments.article_id
-  GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
-  ORDER BY articles.%I
+  ON articles.article_id = comments.article_id
   `;
+  let dataQueries = []
+
+  if (topic) {
+    promiseArray.push(checkExists("topics", "slug", topic))
+    stringQuery += ` WHERE topic = $1`
+    dataQueries.push(topic)
+  }
+
+  stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
+  ORDER BY articles.%I`
+
   //descending alphabetical order is ascending numerical order
   if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
     order = "asc";
   }
-  stringQuery += order === "asc" ? "ASC" : "DESC";
+  stringQuery += order === "asc" ? " ASC" : " DESC";
 
   const formattedStringQuery = format(stringQuery, sort_by);
-  return db.query(formattedStringQuery).then(({ rows }) => {
+  promiseArray.unshift(db.query(formattedStringQuery, dataQueries))
+  return Promise.all(promiseArray)
+  .then(([{rows}, exists = {exists: true}]) => {
+    
+    if (rows.length === 0 && !exists.exists) {
+      return Promise.reject({ status: 404, message: "404 - Not Found" });
+    }
     return rows;
+  
   });
 };
 
