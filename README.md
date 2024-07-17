@@ -1,7 +1,7 @@
 # Northcoders News API
 
 ## View this project online
-You can view the hosted API [here](https://nc-news-bxej.onrender.com)!
+You can view the hosted API [here](https://nc-news-bxej.onrender.com/api)!
 
 
 ## Description
