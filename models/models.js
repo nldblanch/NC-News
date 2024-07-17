@@ -30,10 +30,12 @@ exports.fetchArticleById = (id) => {
 };
 
 exports.fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
-  const allowedQueries = ["created_at", "title", "author", "votes", "topic"];
-  if (!allowedQueries.includes(sort_by)) {
-    return Promise.reject({ status: 405, message: "405 - Method Not Allowed" });
+  const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
+  const allowedOrders = ["desc", "asc"]
+  if (!allowedSortBy.includes(sort_by) || !allowedOrders.includes(order)) {
+    return Promise.reject({ status: 404, message: "404 - Not Found" });
   }
+
   const promiseArray = []
   let stringQuery = `
   SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count

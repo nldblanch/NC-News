@@ -295,19 +295,19 @@ describe("/api/articles", () => {
               });
             });
         });
-        it("405: only allows greenlisted sortby queries", () => {
+        it("404: only allows greenlisted sortby queries", () => {
           return request(app)
             .get("/api/articles?sort_by=bananas")
-            .expect(405)
+            .expect(404)
             .then(({ body: { message } }) => {
-              expect(message).toBe("405 - Method Not Allowed");
+              expect(message).toBe("404 - Not Found");
             });
         });
       });
       describe("?order=", () => {
         it("200: allows user to choose whether the order is ascending or descending", () => {
           return request(app)
-            .get("/api/articles?sort_by=votes&&order=asc")
+            .get("/api/articles?sort_by=votes&order=asc")
             .expect(200)
             .then(({ body: { articles } }) => {
               expect(articles).toBeSortedBy("votes", {
@@ -315,14 +315,12 @@ describe("/api/articles", () => {
               });
             });
         });
-        it("200: defaults to descending (alphabetical ascending) when invalid order given", () => {
+        it("404: doesnt allow invalid orders", () => {
           return request(app)
-            .get("/api/articles?sort_by=author&&order=anything_I_want")
-            .expect(200)
-            .then(({ body: { articles } }) => {
-              expect(articles).toBeSortedBy("author", {
-                descending: false,
-              });
+            .get("/api/articles?sort_by=author&order=anything_I_want")
+            .expect(404)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("404 - Not Found");
             });
         });
       })
@@ -333,6 +331,7 @@ describe("/api/articles", () => {
           .get(`/api/articles?topic=${input_topic}`)
           .expect(200)
           .then(({ body: { articles } }) => {
+            expect(articles.length).toBeGreaterThan(0)
             articles.forEach((article) => {
               expect(article.topic).toBe(input_topic)
             })
