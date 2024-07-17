@@ -1,8 +1,7 @@
-const { getTopics } = require("../controllers/topics.controllers")
+const { getTopics } = require("../controllers/topics.controllers");
 
-const topicsRouter = require("express").Router()
+const topicsRouter = require("express").Router();
 
-topicsRouter.get("/", getTopics)
+topicsRouter.get("/", getTopics);
 
-
-module.exports = topicsRouter
+module.exports = topicsRouter;
