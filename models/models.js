@@ -142,10 +142,4 @@ exports.deleteComment = (comment_id) => {
   );
 };
 
-exports.fetchUsers = () => {
-  const stringQuery = `
-  SELECT * FROM USERS`;
-  return db.query(stringQuery).then(({ rows }) => {
-    return rows;
-  });
-};
+
