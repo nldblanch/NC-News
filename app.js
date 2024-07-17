@@ -11,27 +11,10 @@ const {
   getUsers
 } = require("./controllers/controllers");
 const errorFunctions = require("./error-handling");
-
 const app = express();
+const apiRouter = require("./routers/api-router")
 app.use(express.json());
-
-app.get("/api", getApi);
-
-app.get("/api/topics", getTopics);
-
-app.get("/api/articles/:article_id", getArticleById);
-
-app.get("/api/articles", getArticles);
-
-app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
-
-app.get("/api/users", getUsers)
-
-app.post("/api/articles/:article_id/comments", postCommentToArticle);
-
-app.patch("/api/articles/:article_id", patchArticle)
-
-app.delete("/api/comments/:comment_id", deleteCommentController)
+app.use("/api", apiRouter)
 
 app.all("*", errorFunctions.invalidEndpoint);
 
