@@ -5,20 +5,18 @@ describe("formatObject", () => {
     //arrange
     const object = { author: "nathan" };
     //act
-    formatObject(object).then((actual) => {
-      //assert
-      expect(Array.isArray(actual)).toBe(true);
-    });
+    const actual = formatObject(object);
+    //assert
+    expect(Array.isArray(actual)).toBe(true);
   });
   it("formats an object with one key value pair", () => {
     //arrange
     const object = { author: "nathan" };
     //act
+    const actual = formatObject(object);
     const expected = ["nathan"];
-    formatObject(object).then((actual) => {
-      //assert
-      expect(actual).toEqual(expected);
-    });
+    //assert
+    expect(actual).toEqual(expected);
   });
   it("formats an object with many key value pairs", () => {
     //arrange
@@ -31,6 +29,7 @@ describe("formatObject", () => {
         "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     };
     //act
+    const actual = formatObject(object);
     const expected = [
       "nldblanch",
       "article about mitch",
@@ -38,10 +37,8 @@ describe("formatObject", () => {
       "mitch",
       "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     ];
-    formatObject(object).then((actual) => {
-      //assert
-      expect(actual).toEqual(expected);
-    });
+    //assert
+    expect(actual).toEqual(expected);
   });
   it("creates a new reference in memory for the return object", () => {
     //arrange
@@ -54,10 +51,9 @@ describe("formatObject", () => {
         "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     };
     //act
-    formatObject(object).then((actual) => {
-      //assert
-      expect(actual).not.toBe(object);
-    });
+    const actual = formatObject(object);
+    //assert
+    expect(actual).not.toBe(object);
   });
   it("does not mutate the input object", () => {
     //arrange
@@ -70,17 +66,16 @@ describe("formatObject", () => {
         "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
     };
     const copyObject = {
-      author: "nldblanch",
-      title: "article about mitch",
-      body: "why are there so many of them?",
-      topic: "mitch",
-      article_img_url:
-        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
-    };
+        author: "nldblanch",
+        title: "article about mitch",
+        body: "why are there so many of them?",
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
     //act
-    formatObject(object).then((actual) => {
-      //assert
-      expect(object).toEqual(copyObject);
-    });
+    const actual = formatObject(object);
+    //assert
+    expect(object).toEqual(copyObject);
   });
 });
