@@ -1,2 +1,5 @@
 node_modules
 .env.*
+sprintReadme.md
+error-handling.md
+api-hosting.md
