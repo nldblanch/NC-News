@@ -16,7 +16,14 @@ exports.fetchArticleById = (id) => {
   });
 };
 
-exports.fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
+exports.fetchArticles = (
+  sort_by = "created_at",
+  order = "desc",
+  topic,
+  limit = 10,
+  p = 1
+) => {
+  let sqlIndex = 1;
   const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
   const allowedOrders = ["desc", "asc"];
   if (!allowedSortBy.includes(sort_by) || !allowedOrders.includes(order)) {
@@ -34,8 +41,10 @@ exports.fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
 
   if (topic) {
     promiseArray.push(checkExists("topics", "slug", topic));
-    stringQuery += ` WHERE topic = $1`;
+    stringQuery += ` WHERE topic = $${sqlIndex++}`;
     dataQueries.push(topic);
+  } else {
+    promiseArray.push({ exists: true });
   }
 
   stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
@@ -48,15 +57,27 @@ exports.fetchArticles = (sort_by = "created_at", order = "desc", topic) => {
   stringQuery += order === "asc" ? " ASC" : " DESC";
 
   const formattedStringQuery = format(stringQuery, sort_by);
+
   promiseArray.unshift(db.query(formattedStringQuery, dataQueries));
-  return Promise.all(promiseArray).then(
-    ([{ rows }, exists = { exists: true }]) => {
-      if (rows.length === 0 && !exists.exists) {
-        return Promise.reject({ status: 404, message: "404 - Not Found" });
-      }
-      return rows;
+  return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
+    const total_count = rows.length;
+    const searchLimit = Number(limit);
+    const page = Number(p);
+
+    if (isNaN(page) || isNaN(searchLimit)) {
+      return Promise.reject({ status: 400, message: "400 - Bad Request" });
     }
-  );
+    const maxPage =
+      total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
+    const exceedMaxPage = page > maxPage;
+    if ((total_count === 0 && !exists) || exceedMaxPage) {
+      return Promise.reject({ status: 404, message: "404 - Not Found" });
+    }
+    const offset = (page - 1) * searchLimit;
+
+    const offsetArray = rows.slice(offset, offset + searchLimit);
+    return [offsetArray, total_count];
+  });
 };
 
 exports.fetchCommentsByArticleId = (article_id) => {
@@ -113,16 +134,14 @@ exports.updateArticle = (article_id, value) => {
 };
 
 exports.insertArticle = (article) => {
-  const allowedKeys = ["author", "title", "body", "topic", "article_img_url"]
-  const articleKeys = Object.keys(article)
+  const allowedKeys = ["author", "title", "body", "topic", "article_img_url"];
+  const articleKeys = Object.keys(article);
 
   for (let key of articleKeys) {
     if (!allowedKeys.includes(key)) {
-      return Promise.reject({status: 400, message: "400 - Bad Request"})
+      return Promise.reject({ status: 400, message: "400 - Bad Request" });
     }
-
   }
-
 
   return checkExists("topics", "slug", article.topic)
     .then(({ exists }) => {

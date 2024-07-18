@@ -368,6 +368,86 @@ describe("/api/articles", () => {
           });
       });
     });
+    describe("pagination", () => {
+      describe("?limit=", () => {
+        it("200: responds with an array able to be limited to a number of results", () => {
+          const query = "limit";
+          const value = 10;
+          return request(app)
+            .get(`/api/articles?${query}=${value}`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles.length).toBe(value);
+            });
+        });
+        it("400: responds bad request when page number is invalid", () => {
+          return request(app)
+            .get(`/api/articles?limit=5&p=bananas`)
+            .expect(400)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("400 - Bad Request");
+            });
+        })
+      })
+      describe("?p=", () => {
+        it("200: allows user to choose the starting page, p", () => {
+          const alphabeticalSix = {
+            author: 'butter_bridge',
+            title: 'Living in the shadow of a great man',
+            article_id: 1,
+            topic: 'mitch',
+            created_at: '2020-07-09T20:11:00.000Z',
+            votes: 100,
+            article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
+            comment_count: 11
+          }
+          const alphabeticalSeven = {
+            author: 'butter_bridge',
+            title: 'Moustache',
+            article_id: 12,
+            topic: 'mitch',
+            created_at: '2020-10-11T11:24:00.000Z',
+            votes: 0,
+            article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
+            comment_count: 0
+          }
+          return request(app)
+            .get(`/api/articles?sort_by=title&limit=5&p=2`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles.length).toBe(5);
+              expect(articles[0]).toEqual(alphabeticalSix)
+              expect(articles[1]).toEqual(alphabeticalSeven)
+            });
+        });
+        it("200: displays total_count, the number of articles after being filtered", () => {
+          
+          return request(app)
+            .get(`/api/articles?limit=5&p=3`)
+            .expect(200)
+            .then(({ body: { total_count, articles } }) => {
+              expect(articles.length).toBe(3);
+              expect(total_count).toBe(13)
+            });
+        });
+        it("404: responds not found when page number exceeds max page", () => {
+          return request(app)
+            .get(`/api/articles?limit=5&p=4`)
+            .expect(404)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("404 - Not Found");
+            });
+        })
+        it("400: responds bad request when limit is invalid", () => {
+          return request(app)
+            .get(`/api/articles?limit=bananas`)
+            .expect(400)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("400 - Bad Request");
+            });
+        })
+      })
+    });
   });
   describe("POST", () => {
     it("201: responds with posted article", () => {
@@ -405,9 +485,11 @@ describe("/api/articles", () => {
         .expect(201)
         .then(({ body: { article } }) => {
           const { article_img_url } = article;
-          expect(article_img_url).toBe("https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700");
+          expect(article_img_url).toBe(
+            "https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700"
+          );
         });
-    })
+    });
     it("201: creates new topic when topic doesn't exist", () => {
       const postArticle = {
         author: "butter_bridge",
@@ -423,14 +505,14 @@ describe("/api/articles", () => {
         .expect(201)
         .then(() => {
           return request(app)
-          .get("/api/topics")
-          .expect(200)
-          .then(({body: {topics}}) => {
-            const topicSlugs = topics.map((topic) => {
-              return topic.slug
-            })
-            expect(topicSlugs.includes('Over Population')).toBe(true)
-          })
+            .get("/api/topics")
+            .expect(200)
+            .then(({ body: { topics } }) => {
+              const topicSlugs = topics.map((topic) => {
+                return topic.slug;
+              });
+              expect(topicSlugs.includes("Over Population")).toBe(true);
+            });
         });
     });
     it("404: responds not found when user doesn't exists", () => {
@@ -447,7 +529,7 @@ describe("/api/articles", () => {
         .send(postArticle)
         .expect(404)
         .then(({ body: { message } }) => {
-          expect(message).toBe("404 - User not found")
+          expect(message).toBe("404 - User not found");
         });
     });
     it("400: responds bad request when invalid data keys given", () => {
@@ -464,9 +546,9 @@ describe("/api/articles", () => {
         .send(postArticle)
         .expect(400)
         .then(({ body: { message } }) => {
-          expect(message).toBe("400 - Bad Request")
+          expect(message).toBe("400 - Bad Request");
         });
-    })
+    });
     it("400: responds bad request when missing data entries", () => {
       const postArticle = {
         author: "butter_bridge",
@@ -480,9 +562,9 @@ describe("/api/articles", () => {
         .send(postArticle)
         .expect(400)
         .then(({ body: { message } }) => {
-          expect(message).toBe("400 - Bad Request")
+          expect(message).toBe("400 - Bad Request");
         });
-    })
+    });
   });
 });
 
