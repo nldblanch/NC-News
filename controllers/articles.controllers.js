@@ -4,6 +4,7 @@ const {
   fetchCommentsByArticleId,
   insertCommentOntoArticle,
   updateArticle,
+  insertArticle
 } = require("../models/articles.models");
 
 exports.getArticleById = (request, response, next) => {
@@ -52,3 +53,12 @@ exports.patchArticle = (request, response, next) => {
     })
     .catch(next);
 };
+
+exports.postArticle = (request, response, next) => {
+  const article = request.body
+  insertArticle(article)
+  .then((article) => {
+    response.status(201).send({article})
+  })
+  .catch(next)
+}

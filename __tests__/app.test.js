@@ -323,53 +323,167 @@ describe("/api/articles", () => {
               expect(message).toBe("404 - Not Found");
             });
         });
-      })
+      });
       describe("?topic=", () => {
         it("200: allows user to filter articles by topic", () => {
-          const input_topic = "mitch"
+          const input_topic = "mitch";
           return request(app)
-          .get(`/api/articles?topic=${input_topic}`)
-          .expect(200)
-          .then(({ body: { articles } }) => {
-            expect(articles.length).toBeGreaterThan(0)
-            articles.forEach((article) => {
-              expect(article.topic).toBe(input_topic)
-            })
-          });
-        })
-        it("200: returns with empty array when search topic exists but yields no results", () => {
-          const input_topic = "paper"
-          return request(app)
-          .get(`/api/articles?topic=${input_topic}`)
-          .expect(200)
-          .then(({ body: { articles } }) => {
-            expect(articles).toEqual([])
-          });
-        })
-        it("404: returns with error when search topic does not exist", () => {
-          const input_topic = "nathan"
-          return request(app)
-          .get(`/api/articles?topic=${input_topic}`)
-          .expect(404)
-          .then(({ body: { message } }) => {
-            expect(message).toEqual("404 - Not Found")
-          });
-        })
-      })
-      it("200: does not attempt any sort, resulting in default, when invalid sort key given", () => {
-        const wrongKey = 'bananas'
-        return request(app)
-            .get(`/api/articles?${wrongKey}=votes`)
+            .get(`/api/articles?topic=${input_topic}`)
             .expect(200)
             .then(({ body: { articles } }) => {
-              expect(articles).toBeSortedBy("created_at", {
-            descending: true,
-          });
+              expect(articles.length).toBeGreaterThan(0);
+              articles.forEach((article) => {
+                expect(article.topic).toBe(input_topic);
+              });
+            });
         });
-      })
+        it("200: returns with empty array when search topic exists but yields no results", () => {
+          const input_topic = "paper";
+          return request(app)
+            .get(`/api/articles?topic=${input_topic}`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toEqual([]);
+            });
+        });
+        it("404: returns with error when search topic does not exist", () => {
+          const input_topic = "nathan";
+          return request(app)
+            .get(`/api/articles?topic=${input_topic}`)
+            .expect(404)
+            .then(({ body: { message } }) => {
+              expect(message).toEqual("404 - Not Found");
+            });
+        });
+      });
+      it("200: does not attempt any sort, resulting in default, when invalid sort key given", () => {
+        const wrongKey = "bananas";
+        return request(app)
+          .get(`/api/articles?${wrongKey}=votes`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("created_at", {
+              descending: true,
+            });
+          });
+      });
+    });
+  });
+  describe("POST", () => {
+    it("201: responds with posted article", () => {
+      const postArticle = {
+        author: "butter_bridge",
+        title: "article about mitch",
+        body: "why are there so many of them?",
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(201)
+        .then(({ body: { article } }) => {
+          const { article_id, votes, created_at, comment_count } = article;
+          expect(article).toMatchObject(postArticle);
+          expect(typeof article_id).toBe("number");
+          expect(votes).toBe(0);
+          expect(typeof created_at).toBe("string");
+          expect(comment_count).toBe(0);
+        });
+    });
+    it("201: responds with posted article containing default image if not provided", () => {
+      const postArticle = {
+        author: "butter_bridge",
+        title: "article about mitch",
+        body: "why are there so many of them?",
+        topic: "mitch",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(201)
+        .then(({ body: { article } }) => {
+          const { article_img_url } = article;
+          expect(article_img_url).toBe("https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700");
+        });
+    })
+    it("201: creates new topic when topic doesn't exist", () => {
+      const postArticle = {
+        author: "butter_bridge",
+        title: "article about mitch",
+        body: "why are there so many of them?",
+        topic: "Over Population",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(201)
+        .then(() => {
+          return request(app)
+          .get("/api/topics")
+          .expect(200)
+          .then(({body: {topics}}) => {
+            const topicSlugs = topics.map((topic) => {
+              return topic.slug
+            })
+            expect(topicSlugs.includes('Over Population')).toBe(true)
+          })
+        });
+    });
+    it("404: responds not found when user doesn't exists", () => {
+      const postArticle = {
+        author: "nathanBlanch",
+        title: "article about mitch",
+        body: "why are there so many of them?",
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - User not found")
+        });
+    });
+    it("400: responds bad request when invalid data keys given", () => {
+      const postArticle = {
+        author: "butter_bridge",
+        wrongKey: 9000,
+        body: 200015,
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request")
+        });
+    })
+    it("400: responds bad request when missing data entries", () => {
+      const postArticle = {
+        author: "butter_bridge",
+        body: 200015,
+        topic: "mitch",
+        article_img_url:
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+      };
+      return request(app)
+        .post("/api/articles")
+        .send(postArticle)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request")
+        });
     })
   });
-  
 });
 
 describe("/api/articles/:article_id/comments", () => {
@@ -468,7 +582,7 @@ describe("/api/articles/:article_id/comments", () => {
           expect(article_id).toBe(input_article_id);
         });
     });
-    it("400: responds with bad request when user doesn't yet exist in database", () => {
+    it("404: responds with bad request when user doesn't yet exist in database", () => {
       const input_article_id = 1;
       const sentComment = {
         username: "nldblanch",
@@ -477,9 +591,9 @@ describe("/api/articles/:article_id/comments", () => {
       return request(app)
         .post(`/api/articles/${input_article_id}/comments`)
         .send(sentComment)
-        .expect(400)
+        .expect(404)
         .then(({ body: { message } }) => {
-          expect(message).toBe("400 - User does not exist");
+          expect(message).toBe("404 - User not found");
         });
     });
     it("400: responds with bad request when invalid data type for id", () => {
@@ -538,83 +652,83 @@ describe("/api/articles/:article_id/comments", () => {
 describe("/api/comments/:comment_id", () => {
   describe("PATCH", () => {
     it("200: increments a given comment", () => {
-      const input_comment_id = 1
-      const patchInfo = { inc_votes: 1 }
+      const input_comment_id = 1;
+      const patchInfo = { inc_votes: 1 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(200)
-      .then(({body: {comment}}) => {
-        expect(comment.votes).toBe(17)
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).toBe(17);
+        });
+    });
     it("200: decrements a given comment", () => {
-      const input_comment_id = 1
-      const patchInfo = { inc_votes: -1 }
+      const input_comment_id = 1;
+      const patchInfo = { inc_votes: -1 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(200)
-      .then(({body: {comment}}) => {
-        expect(comment.votes).toBe(15)
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).toBe(15);
+        });
+    });
     it("200: ignores additional keys on patch info", () => {
-      const input_comment_id = 1
-      const patchInfo = { inc_votes: 10, extraKey: 0 }
+      const input_comment_id = 1;
+      const patchInfo = { inc_votes: 10, extraKey: 0 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(200)
-      .then(({body: {comment}}) => {
-        expect(comment.votes).toBe(26)
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).toBe(26);
+        });
+    });
     it("404: returns not found when comment doesn't exist", () => {
-      const input_comment_id = 90009
-      const patchInfo = { inc_votes: 1 }
+      const input_comment_id = 90009;
+      const patchInfo = { inc_votes: 1 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(404)
-      .then(({body: {message}}) => {
-        expect(message).toBe("404 - Not Found")
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - Not Found");
+        });
+    });
     it("400: returns bad request when given invalid id", () => {
-      const input_comment_id = "hello bananas"
-      const patchInfo = { inc_votes: -1 }
+      const input_comment_id = "hello bananas";
+      const patchInfo = { inc_votes: -1 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toBe("400 - Bad Request")
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
     it("400: returns bad request when given incorrect data types", () => {
-      const input_comment_id = 1
-      const patchInfo = { inc_votes: '; drop table if exists finances;' }
+      const input_comment_id = 1;
+      const patchInfo = { inc_votes: "; drop table if exists finances;" };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toBe("400 - Bad Request")
-      })
-    })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
     it("400: returns bad request when not given correct patch key", () => {
-      const input_comment_id = 1
-      const patchInfo = { dropTable: 1 }
+      const input_comment_id = 1;
+      const patchInfo = { dropTable: 1 };
       return request(app)
-      .patch(`/api/comments/${input_comment_id}`)
-      .send(patchInfo)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toBe("400 - Bad Request")
-      })
-    })
-  })
+        .patch(`/api/comments/${input_comment_id}`)
+        .send(patchInfo)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+  });
   describe("DELETE", () => {
     it("204: deletes the comment, no response content", () => {
       const input_comment_id = 1;
@@ -670,27 +784,27 @@ describe("/api/users/:username", () => {
   describe("GET", () => {
     it("200: returns the user associated with the username", () => {
       return request(app)
-      .get("/api/users/butter_bridge")
-      .expect(200)
-      .then(({body: {user}}) => {
-        expect(user).toEqual({
-          username: 'butter_bridge',
-          name: 'jonny',
-          avatar_url:
-            'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
-        })
-      })
-    })
+        .get("/api/users/butter_bridge")
+        .expect(200)
+        .then(({ body: { user } }) => {
+          expect(user).toEqual({
+            username: "butter_bridge",
+            name: "jonny",
+            avatar_url:
+              "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+          });
+        });
+    });
     it("404: returns not found when user doesn't exist", () => {
       return request(app)
-      .get("/api/users/nldblanch")
-      .expect(404)
-      .then(({body: {message}}) => {
-        expect(message).toBe("404 - Not Found")
-      })
-    })
-  })
-})
+        .get("/api/users/nldblanch")
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - Not Found");
+        });
+    });
+  });
+});
 
 describe("generic error handling", () => {
   it("responds with a 404 error when a non-existent endpoint is reached", () => {

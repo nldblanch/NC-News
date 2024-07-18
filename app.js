@@ -15,6 +15,10 @@ app.use(errorFunctions.nullEnteredIntoColumn)
 
 app.use(errorFunctions.queryInvalidDataType);
 
+app.use(errorFunctions.insufficientDataProvided)
+
+
 app.use(errorFunctions.internalServerError);
+
 
 module.exports = app;

@@ -1,6 +1,7 @@
 const db = require("../db/connection");
 const { checkExists } = require("../utils/check-exists");
 const format = require("pg-format");
+const { formatObject } = require("../utils/format-object-for-pg-format");
 
 exports.fetchArticleById = (id) => {
   const stringQuery = `
@@ -109,4 +110,49 @@ exports.updateArticle = (article_id, value) => {
       return rows[0];
     });
   });
+};
+
+exports.insertArticle = (article) => {
+  const allowedKeys = ["author", "title", "body", "topic", "article_img_url"]
+  const articleKeys = Object.keys(article)
+
+  for (let key of articleKeys) {
+    if (!allowedKeys.includes(key)) {
+      return Promise.reject({status: 400, message: "400 - Bad Request"})
+    }
+
+  }
+
+
+  return checkExists("topics", "slug", article.topic)
+    .then(({ exists }) => {
+      let promiseArray = [];
+      if (!exists) {
+        const topicStringQuery = format(
+          `INSERT INTO topics (slug) VALUES (%L);
+      `,
+          [article.topic]
+        );
+        promiseArray.push(db.query(topicStringQuery));
+      } else {
+        promiseArray.push("exists");
+      }
+
+      const articleData = formatObject(article);
+      let stringQuery = `INSERT INTO articles (author, title, body, topic`;
+      if (article.article_img_url === undefined) {
+        stringQuery += `)`;
+      } else {
+        stringQuery += `, article_img_url)`;
+      }
+      stringQuery += ` VALUES %L RETURNING *`;
+      const query = format(stringQuery, [articleData]);
+      promiseArray.push(db.query(query));
+
+      return Promise.all(promiseArray);
+    })
+    .then((result) => {
+      const newlyPostedArticle = result[1].rows[0];
+      return { ...newlyPostedArticle, comment_count: 0 };
+    });
 };
