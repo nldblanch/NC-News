@@ -1,4 +1,4 @@
-const db = require("../db/connection");
+const db = require("../../db/connection");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
 const { checkGreenlist } = require("../utils/greenlist");

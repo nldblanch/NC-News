@@ -1,4 +1,4 @@
-const db = require("../db/connection");
+const db = require("../../db/connection");
 const { checkExists } = require("../utils/check-exists");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");

@@ -1,4 +1,4 @@
-const { formatObject } = require("../utils/format-object-for-pg-format");
+const { formatObject } = require("../api/utils/format-object-for-pg-format");
 
 describe("formatObject", () => {
   it("returns an array", () => {

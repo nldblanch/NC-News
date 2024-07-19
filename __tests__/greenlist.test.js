@@ -1,4 +1,4 @@
-const { checkGreenlist } = require("../utils/greenlist");
+const { checkGreenlist } = require("../api/utils/greenlist");
 
 describe("checkGreenlist", () => {
   it("Returns a promise rejection if object doesn't match greenlist", () => {

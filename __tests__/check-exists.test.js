@@ -1,4 +1,4 @@
-const { checkExists } = require("../utils/check-exists");
+const { checkExists } = require("../api/utils/check-exists");
 const db = require("../db/connection.js");
 
 afterAll(() => {

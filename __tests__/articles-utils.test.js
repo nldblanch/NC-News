@@ -2,7 +2,7 @@ const {
   exceedsMaxPage,
   offsetPageResults,
   checkValidNumbers,
-} = require("../utils/articles-utils");
+} = require("../api/utils/articles-utils");
 
 describe("exceedsMaxPage", () => {
   it("returns a boolean", () => {

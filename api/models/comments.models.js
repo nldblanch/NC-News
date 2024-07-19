@@ -1,4 +1,4 @@
-const db = require("../db/connection");
+const db = require("../../db/connection");
 const { checkExists } = require("../utils/check-exists");
 
 exports.deleteComment = (comment_id) => {
