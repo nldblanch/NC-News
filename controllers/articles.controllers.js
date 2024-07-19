@@ -61,5 +61,8 @@ exports.postArticle = (request, response, next) => {
   .then((article) => {
     response.status(201).send({article})
   })
-  .catch(next)
+  .catch((err) => {
+    console.log("err", err);
+    next(err)
+  })
 }
