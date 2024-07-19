@@ -59,58 +59,58 @@ describe("/api/topics", () => {
     it("201: responds with the newly posted topic", () => {
       const newTopic = {
         slug: "topic name here",
-        description: "description here"
-      }
+        description: "description here",
+      };
       return request(app)
-      .post("/api/topics")
-      .send(newTopic)
-      .expect(201)
-      .then(({body: {topic}}) => {
-        expect(topic).toEqual(newTopic)
-      })
-    })
+        .post("/api/topics")
+        .send(newTopic)
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toEqual(newTopic);
+        });
+    });
     it("201: provides blank description when not given one", () => {
       const newTopic = {
-        slug: "topic name here"
-      }
+        slug: "topic name here",
+      };
       const returnTopic = {
         slug: "topic name here",
-        description: ""
-      }
+        description: "",
+      };
       return request(app)
-      .post("/api/topics")
-      .send(newTopic)
-      .expect(201)
-      .then(({body: {topic}}) => {
-        expect(topic).toEqual(returnTopic)
-      })
-    })
+        .post("/api/topics")
+        .send(newTopic)
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toEqual(returnTopic);
+        });
+    });
     it("400: responds bad request when invalid keys given", () => {
       const newTopic = {
         slug: "topic name here",
-        wrongKey: "description here"
-      }
+        wrongKey: "description here",
+      };
       return request(app)
-      .post("/api/topics")
-      .send(newTopic)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toEqual("400 - Bad Request")
-      })
-    })
+        .post("/api/topics")
+        .send(newTopic)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toEqual("400 - Bad Request");
+        });
+    });
     it("400: responds bad request when missing data entries", () => {
       const newTopic = {
-        description: "description here"
-      }
+        description: "description here",
+      };
       return request(app)
-      .post("/api/topics")
-      .send(newTopic)
-      .expect(400)
-      .then(({body: {message}}) => {
-        expect(message).toEqual("400 - Bad Request")
-      })
-    })
-  })
+        .post("/api/topics")
+        .send(newTopic)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toEqual("400 - Bad Request");
+        });
+    });
+  });
 });
 
 describe("/api/articles/:article_id", () => {
@@ -260,6 +260,50 @@ describe("/api/articles/:article_id", () => {
       return request(app)
         .patch(`/api/articles/${input_article_id}`)
         .send(patchInfo)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+  });
+  describe("DELETE", () => {
+    it("204: deletes the article, no response content", () => {
+      const input_article_id = 1;
+      return request(app)
+        .delete(`/api/articles/${input_article_id}`)
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).toEqual({});
+        });
+    });
+    it("204 / 404: deletes any corresponding to the article", () => {
+      const input_article_id = 1;
+      return request(app)
+        .delete(`/api/articles/${input_article_id}`)
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).toEqual({});
+          return request(app)
+            .get(`/api/articles/${input_article_id}/comments`)
+            .expect(404)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("404 - Not Found");
+            });
+        });
+    });
+    it("404: returns not found when article id doesn't exist", () => {
+      const input_article_id = 9000;
+      return request(app)
+        .delete(`/api/articles/${input_article_id}`)
+        .expect(404)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("404 - Not Found");
+        });
+    });
+    it("400: returns bad request when invalid data type given", () => {
+      const input_article_id = "hello";
+      return request(app)
+        .delete(`/api/articles/${input_article_id}`)
         .expect(400)
         .then(({ body: { message } }) => {
           expect(message).toBe("400 - Bad Request");
