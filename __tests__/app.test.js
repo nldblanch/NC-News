@@ -733,7 +733,7 @@ describe("/api/articles/:article_id/comments", () => {
 
 describe("/api/comments/:comment_id", () => {
   describe("PATCH", () => {
-    it("200: increments a given comment", () => {
+    it("200: increments a given comment and returns the comment", () => {
       const input_comment_id = 1;
       const patchInfo = { inc_votes: 1 };
       return request(app)
