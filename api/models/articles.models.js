@@ -3,7 +3,10 @@ const { checkExists } = require("../utils/check-exists");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
 const { insertTopic } = require("./topics.models");
-const { checkGreenlist } = require("../utils/greenlist");
+const {
+  checkGreenlistKeys,
+  checkGreenlistValues,
+} = require("../utils/greenlist");
 const {
   exceedsMaxPage,
   offsetPageResults,
@@ -30,14 +33,17 @@ exports.fetchArticles = (
   limit = 10,
   p = 1
 ) => {
-  return checkValidNumbers(limit, p)
+  const sortGreenlist = ["created_at", "title", "author", "votes", "topic"];
+  return checkGreenlistValues(sortGreenlist, { sort_by })
+    .then(() => {
+      const orderGreenlist = ["desc", "asc"];
+      return checkGreenlistValues(orderGreenlist, { order });
+    })
+    .then(() => {
+      return checkValidNumbers(limit, p);
+    })
     .then((limitAndPage) => {
       let sqlIndex = 1;
-      const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
-      const allowedOrders = ["desc", "asc"];
-      if (!allowedSortBy.includes(sort_by) || !allowedOrders.includes(order)) {
-        return Promise.reject({ status: 404, message: "404 - Not Found" });
-      }
       const promiseArray = [];
       let stringQuery = `
       SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count
@@ -70,7 +76,6 @@ exports.fetchArticles = (
       promiseArray.push(limitAndPage);
       return Promise.all(promiseArray);
     })
-
     .then(([{ rows }, { exists }, [searchLimit, page]]) => {
       const total_count = rows.length;
       const exceedMaxPage = exceedsMaxPage(total_count, searchLimit, page);
@@ -152,7 +157,7 @@ exports.insertArticle = (article) => {
     "topic",
     "article_img_url",
   ];
-  return checkGreenlist(articleGreenlist, article)
+  return checkGreenlistKeys(articleGreenlist, article)
     .then(() => {
       return checkExists("topics", "slug", article.topic);
     })

@@ -1,7 +1,7 @@
 const db = require("../../db/connection");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
-const { checkGreenlist } = require("../utils/greenlist");
+const { checkGreenlistKeys } = require("../utils/greenlist");
 
 exports.fetchTopics = () => {
   const stringQuery = `
@@ -15,7 +15,7 @@ exports.fetchTopics = () => {
 
 exports.insertTopic = (topic) => {
   const topicGreenlist = ["slug", "description"];
-  return checkGreenlist(topicGreenlist, topic)
+  return checkGreenlistKeys(topicGreenlist, topic)
   .then(() => {
     if (!topic.description) topic.description = ""
     const topicData = formatObject(topic);
