@@ -2,6 +2,7 @@ const db = require("../db/connection");
 const { checkExists } = require("../utils/check-exists");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
+const { insertTopic } = require("./topics.models");
 
 exports.fetchArticleById = (id) => {
   const stringQuery = `
@@ -170,12 +171,7 @@ exports.insertArticle = (article) => {
     .then(({ exists }) => {
       let promiseArray = [];
       if (!exists) {
-        const topicStringQuery = format(
-          `INSERT INTO topics (slug) VALUES (%L);
-      `,
-          [article.topic]
-        );
-        promiseArray.push(db.query(topicStringQuery));
+       promiseArray.push(insertTopic({slug: article.topic}))
       } else {
         promiseArray.push("exists");
       }
