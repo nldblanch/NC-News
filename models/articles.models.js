@@ -4,7 +4,11 @@ const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
 const { insertTopic } = require("./topics.models");
 const { checkGreenlist } = require("../utils/greenlist");
-const { exceedsMaxPage, offsetPageResults, checkValidNumbers } = require("../utils/articles-utils");
+const {
+  exceedsMaxPage,
+  offsetPageResults,
+  checkValidNumbers,
+} = require("../utils/articles-utils");
 
 exports.fetchArticleById = (id) => {
   const stringQuery = `
@@ -93,11 +97,7 @@ exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
     return Promise.all(promiseArray).then(
       ([{ rows }, { exists }, [searchLimit, page]]) => {
         const total_count = rows.length;
-        const exceedMaxPage = exceedsMaxPage(
-          total_count,
-          searchLimit,
-          page
-        );
+        const exceedMaxPage = exceedsMaxPage(total_count, searchLimit, page);
         if ((total_count === 0 && !exists) || exceedMaxPage) {
           return Promise.reject({ status: 404, message: "404 - Not Found" });
         }
@@ -107,11 +107,6 @@ exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
     );
   });
 };
-
-
-
-
-
 
 exports.insertCommentOntoArticle = (article_id, author, body) => {
   if (typeof body !== "string") {
@@ -187,4 +182,11 @@ exports.insertArticle = (article) => {
       const newlyPostedArticle = rows[0];
       return { ...newlyPostedArticle, comment_count: 0 };
     });
+};
+
+exports.deleteArticle = (article_id) => {
+  return this.fetchArticleById(article_id).then(() => {
+    const stringQuery = `DELETE FROM articles WHERE article_id = $1`;
+    return db.query(stringQuery, [article_id]);
+  });
 };

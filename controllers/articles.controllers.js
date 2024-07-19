@@ -4,7 +4,8 @@ const {
   fetchCommentsByArticleId,
   insertCommentOntoArticle,
   updateArticle,
-  insertArticle
+  insertArticle,
+  deleteArticle,
 } = require("../models/articles.models");
 
 exports.getArticleById = (request, response, next) => {
@@ -27,7 +28,7 @@ exports.getArticles = (request, response, next) => {
 
 exports.getCommentsByArticleId = (request, response, next) => {
   const { article_id } = request.params;
-  const {limit, p} = request.query
+  const { limit, p } = request.query;
   fetchCommentsByArticleId(article_id, limit, p)
     .then(([comments, total_count]) => {
       response.status(200).send({ comments, total_count });
@@ -56,10 +57,20 @@ exports.patchArticle = (request, response, next) => {
 };
 
 exports.postArticle = (request, response, next) => {
-  const article = request.body
+  const article = request.body;
   insertArticle(article)
-  .then((article) => {
-    response.status(201).send({article})
-  })
-  .catch(next)
-}
+    .then((article) => {
+      response.status(201).send({ article });
+    })
+    .catch(next);
+};
+
+exports.removeArticle = (request, response, next) => {
+  const { article_id } = request.params;
+  deleteArticle(article_id)
+    .then(() => {
+      console.log("hello from");
+      response.status(204).send();
+    })
+    .catch(next);
+};
