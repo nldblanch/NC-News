@@ -3,6 +3,7 @@ const { checkExists } = require("../utils/check-exists");
 const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
 const { insertTopic } = require("./topics.models");
+const { checkGreenlist } = require("../utils/greenlist");
 
 exports.fetchArticleById = (id) => {
   const stringQuery = `
@@ -88,16 +89,25 @@ exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
     promiseArray.push(db.query(stringQuery, [article_id]));
     promiseArray.push(checkExists("articles", "article_id", article_id));
     promiseArray.push(limitAndPage);
-    return Promise.all(promiseArray)
-    .then(([{ rows }, { exists }, [searchLimit, page]]) => {
-      const total_count = rows.length;
-      const exceedMaxPage = this.exceedMaxPage(total_count, searchLimit, page);
-      if ((total_count === 0 && !exists) || exceedMaxPage) {
-        return Promise.reject({ status: 404, message: "404 - Not Found" });
+    return Promise.all(promiseArray).then(
+      ([{ rows }, { exists }, [searchLimit, page]]) => {
+        const total_count = rows.length;
+        const exceedMaxPage = this.exceedMaxPage(
+          total_count,
+          searchLimit,
+          page
+        );
+        if ((total_count === 0 && !exists) || exceedMaxPage) {
+          return Promise.reject({ status: 404, message: "404 - Not Found" });
+        }
+        const offsetPageResults = this.offsetPageResults(
+          rows,
+          searchLimit,
+          page
+        );
+        return [offsetPageResults, total_count];
       }
-      const offsetPageResults = this.offsetPageResults(rows, searchLimit, page);
-      return [offsetPageResults, total_count];
-    });
+    );
   });
 };
 
@@ -158,24 +168,26 @@ exports.updateArticle = (article_id, value) => {
 };
 
 exports.insertArticle = (article) => {
-  const allowedKeys = ["author", "title", "body", "topic", "article_img_url"];
-  const articleKeys = Object.keys(article);
+  const articleGreenlist = [
+    "author",
+    "title",
+    "body",
+    "topic",
+    "article_img_url",
+  ];
+  return checkGreenlist(articleGreenlist, article)
+    .then(() => {
+      return checkExists("topics", "slug", article.topic);
+    })
 
-  for (let key of articleKeys) {
-    if (!allowedKeys.includes(key)) {
-      return Promise.reject({ status: 400, message: "400 - Bad Request" });
-    }
-  }
-
-  return checkExists("topics", "slug", article.topic)
     .then(({ exists }) => {
-      let promiseArray = [];
       if (!exists) {
-       promiseArray.push(insertTopic({slug: article.topic}))
+        return insertTopic({ slug: article.topic });
       } else {
-        promiseArray.push("exists");
+        return Promise.resolve();
       }
-
+    })
+    .then(() => {
       const articleData = formatObject(article);
       let stringQuery = `INSERT INTO articles (author, title, body, topic`;
       if (article.article_img_url === undefined) {
@@ -185,12 +197,12 @@ exports.insertArticle = (article) => {
       }
       stringQuery += ` VALUES %L RETURNING *`;
       const query = format(stringQuery, [articleData]);
-      promiseArray.push(db.query(query));
 
-      return Promise.all(promiseArray);
+      return db.query(query);
     })
-    .then((result) => {
-      const newlyPostedArticle = result[1].rows[0];
+
+    .then(({ rows }) => {
+      const newlyPostedArticle = rows[0];
       return { ...newlyPostedArticle, comment_count: 0 };
     });
 };
