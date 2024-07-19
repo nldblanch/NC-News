@@ -167,5 +167,10 @@
     "description": "allows client to delete a comment",
     "queries": [],
     "exampleResponse": {}
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "allows client to delete an article, deleting all comments associated with it",
+    "queries": [],
+    "exampleResponse": {}
   }
 }
