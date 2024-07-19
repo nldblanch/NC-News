@@ -4,6 +4,7 @@ const format = require("pg-format");
 const { formatObject } = require("../utils/format-object-for-pg-format");
 const { insertTopic } = require("./topics.models");
 const { checkGreenlist } = require("../utils/greenlist");
+const { exceedsMaxPage, offsetPageResults, checkValidNumbers } = require("../utils/articles-utils");
 
 exports.fetchArticleById = (id) => {
   const stringQuery = `
@@ -25,7 +26,7 @@ exports.fetchArticles = (
   limit = 10,
   p = 1
 ) => {
-  return this.checkValidNumbers(limit, p)
+  return checkValidNumbers(limit, p)
     .then((limitAndPage) => {
       let sqlIndex = 1;
       const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
@@ -68,18 +69,18 @@ exports.fetchArticles = (
 
     .then(([{ rows }, { exists }, [searchLimit, page]]) => {
       const total_count = rows.length;
-      const exceedMaxPage = this.exceedMaxPage(total_count, searchLimit, page);
+      const exceedMaxPage = exceedsMaxPage(total_count, searchLimit, page);
       if ((total_count === 0 && !exists) || exceedMaxPage) {
         return Promise.reject({ status: 404, message: "404 - Not Found" });
       }
-      const offsetPageResults = this.offsetPageResults(rows, searchLimit, page);
+      const offsetPage = offsetPageResults(rows, searchLimit, page);
 
-      return [offsetPageResults, total_count];
+      return [offsetPage, total_count];
     });
 };
 
 exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
-  return this.checkValidNumbers(limit, p).then((limitAndPage) => {
+  return checkValidNumbers(limit, p).then((limitAndPage) => {
     const stringQuery = `
       SELECT comment_id, votes, created_at, author, body, article_id
       FROM comments
@@ -92,7 +93,7 @@ exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
     return Promise.all(promiseArray).then(
       ([{ rows }, { exists }, [searchLimit, page]]) => {
         const total_count = rows.length;
-        const exceedMaxPage = this.exceedMaxPage(
+        const exceedMaxPage = exceedsMaxPage(
           total_count,
           searchLimit,
           page
@@ -100,36 +101,17 @@ exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
         if ((total_count === 0 && !exists) || exceedMaxPage) {
           return Promise.reject({ status: 404, message: "404 - Not Found" });
         }
-        const offsetPageResults = this.offsetPageResults(
-          rows,
-          searchLimit,
-          page
-        );
-        return [offsetPageResults, total_count];
+        const offsetPage = offsetPageResults(rows, searchLimit, page);
+        return [offsetPage, total_count];
       }
     );
   });
 };
 
-exports.offsetPageResults = (rows, searchLimit, page) => {
-  const offset = (page - 1) * searchLimit;
-  const offsetResult = rows.slice(offset, offset + searchLimit);
-  return offsetResult;
-};
 
-exports.checkValidNumbers = (limit, p) => {
-  const searchLimit = Number(limit);
-  const page = Number(p);
-  if (isNaN(page) || isNaN(searchLimit)) {
-    return Promise.reject({ status: 400, message: "400 - Bad Request" });
-  } else {
-    return Promise.resolve([searchLimit, page]);
-  }
-};
-exports.exceedMaxPage = (total_count, searchLimit, page) => {
-  const maxPage = total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
-  return page > maxPage;
-};
+
+
+
 
 exports.insertCommentOntoArticle = (article_id, author, body) => {
   if (typeof body !== "string") {
