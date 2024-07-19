@@ -5,7 +5,7 @@ You can view the hosted API [here](https://nc-news-bxej.onrender.com/api)!
 
 
 ## Description
-Northcoders News is a Reddit clone created in JavaScript. It's fundamentally built upon PSQL and Express.js to run the database and server. 
+Northcoders News is a Reddit clone created in JavaScript. It's fundamentally built upon PSQL and Express.js to run the database and server. In just over two weeks I will start on the front-end!
 
 
 ## Getting Started
