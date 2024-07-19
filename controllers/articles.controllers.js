@@ -69,7 +69,6 @@ exports.removeArticle = (request, response, next) => {
   const { article_id } = request.params;
   deleteArticle(article_id)
     .then(() => {
-      console.log("hello from");
       response.status(204).send();
     })
     .catch(next);
