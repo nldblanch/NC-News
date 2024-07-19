@@ -118,6 +118,20 @@
       }
     }
   },
+  "POST /api/topics": {
+    "description": "allows client to post a new topic",
+    "queries": [],
+    "format": {
+      "slug": "topic name here",
+      "description": "description here"
+    },
+    "exampleResponse": {
+      "topic": {
+        "slug": "topic name here",
+        "description": "description here"
+      }
+    }
+  },
   "PATCH /api/articles/:article_id": {
     "description": "allows client to patch article information",
     "queries": [],
@@ -139,7 +153,7 @@
   "PATCH /api/comments/:comment_id": {
     "description": "allows for a comment to be upvoted or downvoted",
     "queries": [],
-    "format": {"inc_vote": 1},
+    "format": { "inc_vote": 1 },
     "exampleResponse": {
       "comment_id": 2,
       "votes": 14,
