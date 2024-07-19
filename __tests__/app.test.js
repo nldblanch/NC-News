@@ -395,12 +395,12 @@ describe("/api/articles", () => {
               });
             });
         });
-        it("404: only allows greenlisted sortby queries", () => {
+        it("400: only allows greenlisted sortby queries", () => {
           return request(app)
             .get("/api/articles?sort_by=bananas")
-            .expect(404)
+            .expect(400)
             .then(({ body: { message } }) => {
-              expect(message).toBe("404 - Not Found");
+              expect(message).toBe("400 - Bad Request");
             });
         });
       });
@@ -415,12 +415,12 @@ describe("/api/articles", () => {
               });
             });
         });
-        it("404: doesnt allow invalid orders", () => {
+        it("400: doesnt allow invalid orders", () => {
           return request(app)
             .get("/api/articles?sort_by=author&order=anything_I_want")
-            .expect(404)
+            .expect(400)
             .then(({ body: { message } }) => {
-              expect(message).toBe("404 - Not Found");
+              expect(message).toBe("400 - Bad Request");
             });
         });
       });
