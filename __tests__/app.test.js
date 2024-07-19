@@ -55,6 +55,62 @@ describe("/api/topics", () => {
         });
     });
   });
+  describe("POST", () => {
+    it("201: responds with the newly posted topic", () => {
+      const newTopic = {
+        slug: "topic name here",
+        description: "description here"
+      }
+      return request(app)
+      .post("/api/topics")
+      .send(newTopic)
+      .expect(201)
+      .then(({body: {topic}}) => {
+        expect(topic).toEqual(newTopic)
+      })
+    })
+    it("201: provides blank description when not given one", () => {
+      const newTopic = {
+        slug: "topic name here"
+      }
+      const returnTopic = {
+        slug: "topic name here",
+        description: ""
+      }
+      return request(app)
+      .post("/api/topics")
+      .send(newTopic)
+      .expect(201)
+      .then(({body: {topic}}) => {
+        expect(topic).toEqual(returnTopic)
+      })
+    })
+    it("400: responds bad request when invalid keys given", () => {
+      const newTopic = {
+        slug: "topic name here",
+        wrongKey: "description here"
+      }
+      return request(app)
+      .post("/api/topics")
+      .send(newTopic)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toEqual("400 - Bad Request")
+      })
+    })
+    it("400: responds bad request when missing data entries", () => {
+      const newTopic = {
+        description: "description here"
+      }
+      return request(app)
+      .post("/api/topics")
+      .send(newTopic)
+      .expect(400)
+      .then(({body: {message}}) => {
+        expect(message).toEqual("400 - Bad Request")
+      })
+    })
+  })
 });
 
 describe("/api/articles/:article_id", () => {
