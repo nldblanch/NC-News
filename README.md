@@ -80,7 +80,8 @@ will run the app.test.js test file.
 _The test database will seed itself with the test data for each test._
 
 ## Deploying your own version of the API
-Future instructions imminent!
+
+Do you want to deploy your own version of this API? [Follow these instructions!](./api-hosting.md) 
 
 ## Acknowledgements
 
