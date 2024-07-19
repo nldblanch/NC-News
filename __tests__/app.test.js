@@ -380,9 +380,10 @@ describe("/api/articles", () => {
               expect(articles.length).toBe(value);
             });
         });
-        it("400: responds bad request when page number is invalid", () => {
+        
+        it("400: responds bad request when limit is invalid", () => {
           return request(app)
-            .get(`/api/articles?limit=5&p=bananas`)
+            .get(`/api/articles?limit=bananas`)
             .expect(400)
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
@@ -438,9 +439,9 @@ describe("/api/articles", () => {
               expect(message).toBe("404 - Not Found");
             });
         })
-        it("400: responds bad request when limit is invalid", () => {
+        it("400: responds bad request when page number is invalid", () => {
           return request(app)
-            .get(`/api/articles?limit=bananas`)
+            .get(`/api/articles?limit=5&p=bananas`)
             .expect(400)
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
@@ -569,7 +570,7 @@ describe("/api/articles", () => {
 });
 
 describe("/api/articles/:article_id/comments", () => {
-  describe("GET", () => {
+  describe.only("GET", () => {
     it("returns an array of all the comments on an article given the article id", () => {
       const input_article_id = 1;
       return request(app)
@@ -577,7 +578,6 @@ describe("/api/articles/:article_id/comments", () => {
         .expect(200)
         .then(({ body: { comments } }) => {
           expect(Array.isArray(comments)).toBe(true);
-
           comments.forEach((comment) => {
             expect(Object.keys(comment).length).toBe(6);
             const { comment_id, votes, created_at, author, body, article_id } =
@@ -618,6 +618,91 @@ describe("/api/articles/:article_id/comments", () => {
           expect(comments).toEqual([]);
         });
     });
+    describe("pagination", () => {
+      describe("?limit=", () => {
+        it("200: allows array of comments to be limited", () => {
+          const query = "limit";
+          const value = 5;
+          return request(app)
+            .get(`/api/articles/1/comments?${query}=${value}`)
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments.length).toBe(value);
+            });
+        });
+        it("200: defaults to a limit of 10", () => {
+          return request(app)
+            .get(`/api/articles/1/comments`)
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments.length).toBe(10);
+            });
+        });
+        it("400: responds bad request when limit is invalid", () => {
+          return request(app)
+          .get(`/api/articles/1/comments?limit=bananas`)
+            .expect(400)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("400 - Bad Request");
+            });
+        })
+
+      })
+      describe("?p=", () => {
+        it("200: allows user to choose the starting page, p", () => {
+          const limit2Page2Comment1 = {
+            comment_id: 4,
+            votes: -100,
+            created_at: '2020-02-23T12:01:00.000Z',
+            author: 'icellusedkars',
+            body: ' I carry a log — yes. Is it funny to you? It is not to me.',
+            article_id: 1
+          }
+          const limit2Page2Comment2 = {
+            comment_id: 5,
+            votes: 0,
+            created_at: '2020-11-03T21:00:00.000Z',
+            author: 'icellusedkars',
+            body: 'I hate streaming noses',
+            article_id: 1
+          }
+          return request(app)
+            .get(`/api/articles/1/comments?limit=2&p=2`)
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments.length).toBe(2);
+              expect(comments[0]).toEqual(limit2Page2Comment1)
+              expect(comments[1]).toEqual(limit2Page2Comment2)
+            });
+        });
+        it("200: displays total_count, the number of comments after being searched", () => {
+          
+          return request(app)
+            .get(`/api/articles/1/comments?limit=2&p=3`)
+            .expect(200)
+            .then(({ body: { total_count, comments } }) => {
+              expect(comments.length).toBe(2);
+              expect(total_count).toBe(11)
+            });
+        });
+        it("404: responds not found when page number exceeds max page", () => {
+          return request(app)
+            .get(`/api/articles/1/comments?limit=2&p=7`)
+            .expect(404)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("404 - Not Found");
+            });
+        })
+        it("400: responds bad request when page number is invalid", () => {
+          return request(app)
+            .get(`/api/articles/1/comments?limit=5&p=bananas`)
+            .expect(400)
+            .then(({ body: { message } }) => {
+              expect(message).toBe("400 - Bad Request");
+            });
+        })
+      })
+    })
   });
   describe("POST", () => {
     it("201: responds with the posted comment on the article", () => {

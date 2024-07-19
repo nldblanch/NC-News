@@ -80,7 +80,7 @@ exports.fetchArticles = (
   });
 };
 
-exports.fetchCommentsByArticleId = (article_id) => {
+exports.fetchCommentsByArticleId = (article_id, limit=10, p=1) => {
   const stringQuery = `
     SELECT comment_id, votes, created_at, author, body, article_id
     FROM comments
@@ -89,11 +89,23 @@ exports.fetchCommentsByArticleId = (article_id) => {
   const promiseArray = [];
   promiseArray.push(db.query(stringQuery, [article_id]));
   promiseArray.push(checkExists("articles", "article_id", article_id));
-  return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
-    if (rows.length === 0 && !exists) {
+  return Promise.all(promiseArray)
+  .then(([{ rows }, { exists }]) => {
+    const total_count = rows.length
+    const searchLimit = Number(limit);
+    const page = Number(p)
+    if (isNaN(page) || isNaN(searchLimit)) {
+      return Promise.reject({ status: 400, message: "400 - Bad Request" });
+    }
+    const maxPage =
+      total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
+    const exceedMaxPage = page > maxPage;
+    if ((total_count === 0 && !exists) || exceedMaxPage) {
       return Promise.reject({ status: 404, message: "404 - Not Found" });
     }
-    return rows;
+    const offset = (page - 1) * searchLimit
+    const offsetArray = rows.slice(offset, offset + searchLimit)
+    return [offsetArray, total_count]
   });
 };
 

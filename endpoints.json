@@ -82,8 +82,11 @@
     }
   },
   "GET /api/articles/:article_id/comments": {
-    "description": "serves an array of comments from the specified article id",
-    "queries": [],
+    "description": "serves an array of comments from the specified article id. Able to be limited and paginated",
+    "queries": {
+      "limit": 10,
+      "p": 1
+    },
     "exampleResponse": {
       "comments": [
         {
