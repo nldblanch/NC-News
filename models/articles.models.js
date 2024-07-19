@@ -23,90 +23,101 @@ exports.fetchArticles = (
   limit = 10,
   p = 1
 ) => {
-  let sqlIndex = 1;
-  const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
-  const allowedOrders = ["desc", "asc"];
-  if (!allowedSortBy.includes(sort_by) || !allowedOrders.includes(order)) {
-    return Promise.reject({ status: 404, message: "404 - Not Found" });
-  }
+  return this.checkValidNumbers(limit, p)
+    .then((limitAndPage) => {
+      let sqlIndex = 1;
+      const allowedSortBy = ["created_at", "title", "author", "votes", "topic"];
+      const allowedOrders = ["desc", "asc"];
+      if (!allowedSortBy.includes(sort_by) || !allowedOrders.includes(order)) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+      const promiseArray = [];
+      let stringQuery = `
+      SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count
+      FROM articles
+      LEFT JOIN comments
+      ON articles.article_id = comments.article_id
+      `;
+      let dataQueries = [];
 
-  const promiseArray = [];
-  let stringQuery = `
-    SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id)::int AS comment_count
-    FROM articles
-    LEFT JOIN comments
-    ON articles.article_id = comments.article_id
-    `;
-  let dataQueries = [];
+      if (topic) {
+        promiseArray.push(checkExists("topics", "slug", topic));
+        stringQuery += ` WHERE topic = $${sqlIndex++}`;
+        dataQueries.push(topic);
+      } else {
+        promiseArray.push({ exists: true });
+      }
 
-  if (topic) {
-    promiseArray.push(checkExists("topics", "slug", topic));
-    stringQuery += ` WHERE topic = $${sqlIndex++}`;
-    dataQueries.push(topic);
-  } else {
-    promiseArray.push({ exists: true });
-  }
+      stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
+      ORDER BY articles.%I`;
 
-  stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
-    ORDER BY articles.%I`;
+      //descending alphabetical order is ascending numerical order
+      if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
+        order = "asc";
+      }
+      stringQuery += order === "asc" ? " ASC" : " DESC";
 
-  //descending alphabetical order is ascending numerical order
-  if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
-    order = "asc";
-  }
-  stringQuery += order === "asc" ? " ASC" : " DESC";
+      const formattedStringQuery = format(stringQuery, sort_by);
 
-  const formattedStringQuery = format(stringQuery, sort_by);
+      promiseArray.unshift(db.query(formattedStringQuery, dataQueries));
+      promiseArray.push(limitAndPage);
+      return Promise.all(promiseArray);
+    })
 
-  promiseArray.unshift(db.query(formattedStringQuery, dataQueries));
-  return Promise.all(promiseArray).then(([{ rows }, { exists }]) => {
-    const total_count = rows.length;
-    const searchLimit = Number(limit);
-    const page = Number(p);
+    .then(([{ rows }, { exists }, [searchLimit, page]]) => {
+      const total_count = rows.length;
+      const exceedMaxPage = this.exceedMaxPage(total_count, searchLimit, page);
+      if ((total_count === 0 && !exists) || exceedMaxPage) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+      const offsetPageResults = this.offsetPageResults(rows, searchLimit, page);
 
-    if (isNaN(page) || isNaN(searchLimit)) {
-      return Promise.reject({ status: 400, message: "400 - Bad Request" });
-    }
-    const maxPage =
-      total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
-    const exceedMaxPage = page > maxPage;
-    if ((total_count === 0 && !exists) || exceedMaxPage) {
-      return Promise.reject({ status: 404, message: "404 - Not Found" });
-    }
-    const offset = (page - 1) * searchLimit;
+      return [offsetPageResults, total_count];
+    });
+};
 
-    const offsetArray = rows.slice(offset, offset + searchLimit);
-    return [offsetArray, total_count];
+exports.fetchCommentsByArticleId = (article_id, limit = 10, p = 1) => {
+  return this.checkValidNumbers(limit, p).then((limitAndPage) => {
+    const stringQuery = `
+      SELECT comment_id, votes, created_at, author, body, article_id
+      FROM comments
+      WHERE article_id = $1
+      `;
+    const promiseArray = [];
+    promiseArray.push(db.query(stringQuery, [article_id]));
+    promiseArray.push(checkExists("articles", "article_id", article_id));
+    promiseArray.push(limitAndPage);
+    return Promise.all(promiseArray)
+    .then(([{ rows }, { exists }, [searchLimit, page]]) => {
+      const total_count = rows.length;
+      const exceedMaxPage = this.exceedMaxPage(total_count, searchLimit, page);
+      if ((total_count === 0 && !exists) || exceedMaxPage) {
+        return Promise.reject({ status: 404, message: "404 - Not Found" });
+      }
+      const offsetPageResults = this.offsetPageResults(rows, searchLimit, page);
+      return [offsetPageResults, total_count];
+    });
   });
 };
 
-exports.fetchCommentsByArticleId = (article_id, limit=10, p=1) => {
-  const stringQuery = `
-    SELECT comment_id, votes, created_at, author, body, article_id
-    FROM comments
-    WHERE article_id = $1
-    `;
-  const promiseArray = [];
-  promiseArray.push(db.query(stringQuery, [article_id]));
-  promiseArray.push(checkExists("articles", "article_id", article_id));
-  return Promise.all(promiseArray)
-  .then(([{ rows }, { exists }]) => {
-    const total_count = rows.length
-    const searchLimit = Number(limit);
-    const page = Number(p)
-    if (isNaN(page) || isNaN(searchLimit)) {
-      return Promise.reject({ status: 400, message: "400 - Bad Request" });
-    }
-    const maxPage =
-      total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
-    const exceedMaxPage = page > maxPage;
-    if ((total_count === 0 && !exists) || exceedMaxPage) {
-      return Promise.reject({ status: 404, message: "404 - Not Found" });
-    }
-    const offset = (page - 1) * searchLimit
-    const offsetArray = rows.slice(offset, offset + searchLimit)
-    return [offsetArray, total_count]
-  });
+exports.offsetPageResults = (rows, searchLimit, page) => {
+  const offset = (page - 1) * searchLimit;
+  const offsetResult = rows.slice(offset, offset + searchLimit);
+  return offsetResult;
+};
+
+exports.checkValidNumbers = (limit, p) => {
+  const searchLimit = Number(limit);
+  const page = Number(p);
+  if (isNaN(page) || isNaN(searchLimit)) {
+    return Promise.reject({ status: 400, message: "400 - Bad Request" });
+  } else {
+    return Promise.resolve([searchLimit, page]);
+  }
+};
+exports.exceedMaxPage = (total_count, searchLimit, page) => {
+  const maxPage = total_count === 0 ? 1 : Math.ceil(total_count / searchLimit);
+  return page > maxPage;
 };
 
 exports.insertCommentOntoArticle = (article_id, author, body) => {

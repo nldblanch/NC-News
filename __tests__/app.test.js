@@ -380,7 +380,7 @@ describe("/api/articles", () => {
               expect(articles.length).toBe(value);
             });
         });
-        
+
         it("400: responds bad request when limit is invalid", () => {
           return request(app)
             .get(`/api/articles?limit=bananas`)
@@ -388,47 +388,48 @@ describe("/api/articles", () => {
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
             });
-        })
-      })
+        });
+      });
       describe("?p=", () => {
         it("200: allows user to choose the starting page, p", () => {
           const alphabeticalSix = {
-            author: 'butter_bridge',
-            title: 'Living in the shadow of a great man',
+            author: "butter_bridge",
+            title: "Living in the shadow of a great man",
             article_id: 1,
-            topic: 'mitch',
-            created_at: '2020-07-09T20:11:00.000Z',
+            topic: "mitch",
+            created_at: "2020-07-09T20:11:00.000Z",
             votes: 100,
-            article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
-            comment_count: 11
-          }
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+            comment_count: 11,
+          };
           const alphabeticalSeven = {
-            author: 'butter_bridge',
-            title: 'Moustache',
+            author: "butter_bridge",
+            title: "Moustache",
             article_id: 12,
-            topic: 'mitch',
-            created_at: '2020-10-11T11:24:00.000Z',
+            topic: "mitch",
+            created_at: "2020-10-11T11:24:00.000Z",
             votes: 0,
-            article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
-            comment_count: 0
-          }
+            article_img_url:
+              "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+            comment_count: 0,
+          };
           return request(app)
             .get(`/api/articles?sort_by=title&limit=5&p=2`)
             .expect(200)
             .then(({ body: { articles } }) => {
               expect(articles.length).toBe(5);
-              expect(articles[0]).toEqual(alphabeticalSix)
-              expect(articles[1]).toEqual(alphabeticalSeven)
+              expect(articles[0]).toEqual(alphabeticalSix);
+              expect(articles[1]).toEqual(alphabeticalSeven);
             });
         });
         it("200: displays total_count, the number of articles after being filtered", () => {
-          
           return request(app)
             .get(`/api/articles?limit=5&p=3`)
             .expect(200)
             .then(({ body: { total_count, articles } }) => {
               expect(articles.length).toBe(3);
-              expect(total_count).toBe(13)
+              expect(total_count).toBe(13);
             });
         });
         it("404: responds not found when page number exceeds max page", () => {
@@ -438,7 +439,7 @@ describe("/api/articles", () => {
             .then(({ body: { message } }) => {
               expect(message).toBe("404 - Not Found");
             });
-        })
+        });
         it("400: responds bad request when page number is invalid", () => {
           return request(app)
             .get(`/api/articles?limit=5&p=bananas`)
@@ -446,8 +447,8 @@ describe("/api/articles", () => {
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
             });
-        })
-      })
+        });
+      });
     });
   });
   describe("POST", () => {
@@ -570,7 +571,7 @@ describe("/api/articles", () => {
 });
 
 describe("/api/articles/:article_id/comments", () => {
-  describe.only("GET", () => {
+  describe("GET", () => {
     it("returns an array of all the comments on an article given the article id", () => {
       const input_article_id = 1;
       return request(app)
@@ -640,49 +641,47 @@ describe("/api/articles/:article_id/comments", () => {
         });
         it("400: responds bad request when limit is invalid", () => {
           return request(app)
-          .get(`/api/articles/1/comments?limit=bananas`)
+            .get(`/api/articles/1/comments?limit=bananas`)
             .expect(400)
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
             });
-        })
-
-      })
+        });
+      });
       describe("?p=", () => {
         it("200: allows user to choose the starting page, p", () => {
           const limit2Page2Comment1 = {
             comment_id: 4,
             votes: -100,
-            created_at: '2020-02-23T12:01:00.000Z',
-            author: 'icellusedkars',
-            body: ' I carry a log — yes. Is it funny to you? It is not to me.',
-            article_id: 1
-          }
+            created_at: "2020-02-23T12:01:00.000Z",
+            author: "icellusedkars",
+            body: " I carry a log — yes. Is it funny to you? It is not to me.",
+            article_id: 1,
+          };
           const limit2Page2Comment2 = {
             comment_id: 5,
             votes: 0,
-            created_at: '2020-11-03T21:00:00.000Z',
-            author: 'icellusedkars',
-            body: 'I hate streaming noses',
-            article_id: 1
-          }
+            created_at: "2020-11-03T21:00:00.000Z",
+            author: "icellusedkars",
+            body: "I hate streaming noses",
+            article_id: 1,
+          };
           return request(app)
             .get(`/api/articles/1/comments?limit=2&p=2`)
             .expect(200)
             .then(({ body: { comments } }) => {
               expect(comments.length).toBe(2);
-              expect(comments[0]).toEqual(limit2Page2Comment1)
-              expect(comments[1]).toEqual(limit2Page2Comment2)
+              expect(comments[0]).toEqual(limit2Page2Comment1);
+              expect(comments[1]).toEqual(limit2Page2Comment2);
             });
         });
         it("200: displays total_count, the number of comments after being searched", () => {
-          
           return request(app)
             .get(`/api/articles/1/comments?limit=2&p=3`)
             .expect(200)
             .then(({ body: { total_count, comments } }) => {
               expect(comments.length).toBe(2);
-              expect(total_count).toBe(11)
+              expect(total_count).toBe(11);
             });
         });
         it("404: responds not found when page number exceeds max page", () => {
@@ -692,7 +691,7 @@ describe("/api/articles/:article_id/comments", () => {
             .then(({ body: { message } }) => {
               expect(message).toBe("404 - Not Found");
             });
-        })
+        });
         it("400: responds bad request when page number is invalid", () => {
           return request(app)
             .get(`/api/articles/1/comments?limit=5&p=bananas`)
@@ -700,9 +699,9 @@ describe("/api/articles/:article_id/comments", () => {
             .then(({ body: { message } }) => {
               expect(message).toBe("400 - Bad Request");
             });
-        })
-      })
-    })
+        });
+      });
+    });
   });
   describe("POST", () => {
     it("201: responds with the posted comment on the article", () => {
