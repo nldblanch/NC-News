@@ -118,6 +118,26 @@
       }
     }
   },
+  "POST /api/articles": {
+    "description": "allows client to post a new article",
+    "queries": [],
+    "format": {
+      "author": "Nathan",
+      "title": "Living in the shadow of a great man",
+      "body": "I find this existence challenging",
+      "topic": "cooking",
+      "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+    },
+    "exampleResponse": {
+      "article": {
+        "author": "Nathan",
+        "title": "Living in the shadow of a great man",
+        "body": "I find this existence challenging",
+        "topic": "cooking",
+        "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+      }
+    }
+  },
   "POST /api/topics": {
     "description": "allows client to post a new topic",
     "queries": [],
