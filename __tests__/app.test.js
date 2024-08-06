@@ -751,19 +751,19 @@ describe("/api/articles/:article_id/comments", () => {
       describe("?p=", () => {
         it("200: allows user to choose the starting page, p", () => {
           const limit2Page2Comment1 = {
-            comment_id: 4,
-            votes: -100,
-            created_at: "2020-02-23T12:01:00.000Z",
-            author: "icellusedkars",
-            body: " I carry a log — yes. Is it funny to you? It is not to me.",
+            comment_id: 18,
+            votes: 16,
+            created_at: "2020-07-21T00:20:00.000Z",
+            author: "butter_bridge",
+            body: "This morning, I showered for nine minutes.",
             article_id: 1,
           };
           const limit2Page2Comment2 = {
-            comment_id: 5,
+            comment_id: 13,
             votes: 0,
-            created_at: "2020-11-03T21:00:00.000Z",
+            created_at: "2020-06-15T10:25:00.000Z",
             author: "icellusedkars",
-            body: "I hate streaming noses",
+            body: "Fruit pastilles",
             article_id: 1,
           };
           return request(app)
