@@ -385,6 +385,16 @@ describe("/api/articles", () => {
               });
             });
         });
+        it("200: allows the user to sort articles by any valid column (comment_count, default descending)", () => {
+          return request(app)
+            .get("/api/articles?sort_by=comment_count")
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toBeSortedBy("comment_count", {
+                descending: true,
+              });
+            });
+        });
         it("200: allows the user to sort articles by any valid column (created_at, default descending)", () => {
           return request(app)
             .get("/api/articles?sort_by=created_at")

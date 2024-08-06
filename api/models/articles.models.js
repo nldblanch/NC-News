@@ -33,7 +33,7 @@ exports.fetchArticles = (
   limit = 10,
   p = 1
 ) => {
-  const sortGreenlist = ["created_at", "title", "author", "votes", "topic"];
+  const sortGreenlist = ["created_at", "title", "author", "votes", "topic", "comment_count"];
   return checkGreenlistValues(sortGreenlist, { sort_by })
     .then(() => {
       const orderGreenlist = ["desc", "asc"];
@@ -61,8 +61,12 @@ exports.fetchArticles = (
         promiseArray.push({ exists: true });
       }
 
-      stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
-      ORDER BY articles.%I`;
+      stringQuery += ` GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url`
+      if (sort_by === "comment_count") {
+        stringQuery += " ORDER BY %I"
+      } else {
+        stringQuery += ` ORDER BY articles.%I`
+      }
 
       //descending alphabetical order is ascending numerical order
       if (sort_by === "title" || sort_by === "topic" || sort_by === "author") {
