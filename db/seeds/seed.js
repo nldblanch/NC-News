@@ -29,7 +29,7 @@ const seed = ({ topicData, userData, articleData, commentData }) => {
       CREATE TABLE users (
         username VARCHAR PRIMARY KEY,
         name VARCHAR NOT NULL,
-        avatar_url VARCHAR
+        avatar_url VARCHAR DEFAULT 'https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon'
       );`);
 
       return Promise.all([topicsTablePromise, usersTablePromise]);

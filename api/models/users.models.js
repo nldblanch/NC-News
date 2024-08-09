@@ -1,4 +1,8 @@
+const format = require("pg-format");
 const db = require("../../db/connection.js");
+const { checkExists } = require("../utils/check-exists.js");
+const { formatObject } = require("../utils/format-object-for-pg-format.js");
+const { checkGreenlistKeys } = require("../utils/greenlist.js");
 
 exports.fetchUsers = () => {
   const stringQuery = `
@@ -23,3 +27,33 @@ exports.fetchUserFromUsername = (username) => {
     return rows[0];
   });
 };
+
+exports.postNewUser = (user) => {
+  const greenlist = [
+    "username",
+    "name",
+  ];
+  return checkGreenlistKeys(greenlist, user)
+    .then(() => {      
+      return checkExists("users", "username", user.username);
+    })
+
+    .then(({ exists }) => {
+      if (exists) {
+        return Promise.reject({status: 200, message: "User already exists. Successful login."});
+      } else {
+        return Promise.resolve();
+      }
+    })
+    .then(() => {
+      const userData = formatObject(user);
+      let stringQuery = `INSERT INTO users (username, name) VALUES %L RETURNING *`;
+      const query = format(stringQuery, [userData]);
+
+      return db.query(query);
+    })
+    .then(({ rows }) => {
+      const newlyPostedUser = rows[0];
+      return { ...newlyPostedUser };
+    });
+}

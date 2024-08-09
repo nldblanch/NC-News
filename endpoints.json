@@ -152,6 +152,21 @@
       }
     }
   },
+  "POST /api/users": {
+    "description": "allows client to post a new user",
+    "queries": [],
+    "format": {
+      "username": "lurker",
+      "name": "Nathan Blanch"
+    },
+    "exampleResponse": {
+      "user": {
+        "username": "lurker",
+        "name": "Nathan Blanch",
+        "avatar_url": "https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon"
+      }
+    }
+  },
   "PATCH /api/articles/:article_id": {
     "description": "allows client to patch article information",
     "queries": [],

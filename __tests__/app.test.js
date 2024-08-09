@@ -1054,6 +1054,61 @@ describe("/api/users", () => {
         });
     });
   });
+  describe("POST", () => {
+    it("201: responds with posted user containing default avatar image", () => {
+      const postUser = {
+        username: "nldblanch",
+        name: "Nathan Blanch",
+      };
+      return request(app)
+        .post("/api/users")
+        .send(postUser)
+        .expect(201)
+        .then(({ body: { user } }) => {
+          const { avatar_url } = user;
+          expect(user).toMatchObject(postUser);
+          expect(avatar_url).toBe("https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon");
+        });
+    });
+    it("200: does not create new user when username exists (Netlify will refuse new usernames, so this prevents a new user created on successful login)", () => {
+      const postUser = {
+        username: "lurker",
+        name: "Nathan Blanch",
+      };
+      return request(app)
+        .post("/api/users")
+        .send(postUser)
+        .expect(200)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("User already exists. Successful login.");
+        });
+    });
+    it("400: responds bad request when invalid data keys given", () => {
+      const postUser = {
+        usern: "nldblanch",
+        name: "Nathan Blanch",
+      };
+      return request(app)
+        .post("/api/users")
+        .send(postUser)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+    it("400: responds bad request when missing data entries", () => {
+      const postUser = {
+        username: "nldblanch",
+      };
+      return request(app)
+        .post("/api/users")
+        .send(postUser)
+        .expect(400)
+        .then(({ body: { message } }) => {
+          expect(message).toBe("400 - Bad Request");
+        });
+    });
+  })
 });
 
 describe("/api/users/:username", () => {
@@ -1080,6 +1135,7 @@ describe("/api/users/:username", () => {
         });
     });
   });
+  
 });
 
 describe("generic error handling", () => {
